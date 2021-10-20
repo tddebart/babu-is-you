@@ -21,9 +21,7 @@ export default class Game extends Component {
         }
     }
 
-    movePlayer(xP:number, yP:number) {
-        // const notValidNow: any = []
-
+    movePlayers(xP:number, yP:number) {
         for (const pos of this.grid.playerPositions) {
             if(pos.skip) {
                 pos.skip = false;
@@ -37,14 +35,14 @@ export default class Game extends Component {
     
     keyDetect(e: KeyboardEvent) {
         if(e.key === "w") {
-            this.movePlayer(0,-1)
+            this.movePlayers(0,-1)
         }
         else if(e.key === "a") {
-            this.movePlayer(-1,0)
+            this.movePlayers(-1,0)
         } else if(e.key === "s") {
-            this.movePlayer(0,1)
+            this.movePlayers(0,1)
         } else if(e.key === "d") {
-            this.movePlayer(1,0)
+            this.movePlayers(1,0)
         }
     }
 

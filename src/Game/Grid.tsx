@@ -1,6 +1,5 @@
 import Canvas, {Drawing} from "./Canvas";
 import Node from "./Node";
-import babu from "../img/babu.png"
 
 export default class Grid extends Drawing {
     public width: number
@@ -13,8 +12,16 @@ export default class Grid extends Drawing {
 
     public playerPositions: Array<{ x: number; y: number, skip: boolean }> = [];
 
-    private gridDrawing: any;
-    private babuDrawing: any;
+    private drawings: {[key: string]: any} = {}
+
+    getDrawing(key: string) {
+        if(!(key in this.drawings)) {
+            let img = new Image(24,24);
+            img.src = process.env.PUBLIC_URL+"/img/" + key + '.png'
+            this.drawings[key] = img;
+        }
+        return this.drawings[key]
+    }
 
     constructor(canvas: Canvas, width: number, height: number, resolution: number) {
         super(canvas)
@@ -22,14 +29,16 @@ export default class Grid extends Drawing {
         this.height = height;
         this.resolution = resolution;
         this.setOffset()
-        this.initializeGrid(width, height);
-        this.gridDrawing = this.drawGrid()
-        this.babuDrawing = new Image(24,24)
-        this.babuDrawing.src = babu;
+        this.initializeGrid(width, height)
+        this.initializeDrawings()
     }
 
     setOffset() {
         this.offset = {x:window.innerWidth/2-(this.width/2*this.resolution), y:window.innerHeight/2-(this.height/2*this.resolution)}
+    }
+
+    initializeDrawings() {
+        this.drawings["grid"] = this.drawGrid()
     }
 
     initializeGrid(width:number, height:number) {
@@ -42,17 +51,30 @@ export default class Grid extends Drawing {
         }
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                if((x===5 && y===5) || (x===3 && y===4)) {
+                if((x===5 && y===5)) {
                     this.grid[y][x].isPlayer = true;
                     this.grid[y][x].isPushable = true;
+                    this.grid[y][x].objectName = 'baba';
                     this.playerPositions.push({x:x,y:y, skip:false});
                 }
                 if((x===3 && y===3)) {
-                    this.grid[y][x].isText = true;
+                    this.grid[y][x].text = "baba";
+                }
+                if((x===4 && y===3)) {
+                    this.grid[y][x].text = "is";
+                }
+                if((x===6 && y===3)) {
+                    this.grid[y][x].text = "you";
                 }
             }
         }
     }
+
+    updateRules() {
+
+    }
+
+    //#region moving
 
     canMoveIntoNode(x:number, y:number, xP:number, yP:number) {
         const grid = this.grid;
@@ -91,27 +113,28 @@ export default class Grid extends Drawing {
         return true;
     }
 
+    //#endregion
+
     //#region drawing
 
     draw() {
-        this.ctx.drawImage(this.gridDrawing, this.offset.x, this.offset.y)
+        this.ctx.drawImage(this.drawings["grid"], this.offset.x, this.offset.y)
 
         const resolution = this.resolution;
 
+        this.ctx.imageSmoothingEnabled = false
         for (const pos of this.playerPositions) {
-            this.ctx.imageSmoothingEnabled = false
-            this.ctx.drawImage(this.babuDrawing,pos.x*resolution+this.offset.x,pos.y*resolution+this.offset.y,resolution,resolution)
-            this.ctx.imageSmoothingEnabled = true
+            this.ctx.drawImage(this.getDrawing('babu'),pos.x*resolution+this.offset.x,pos.y*resolution+this.offset.y,resolution,resolution)
         }
 
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 if(this.grid[y][x].isText) {
-                    this.ctx.fillStyle = 'Blue'
-                    this.ctx.fillRect(x*resolution+this.offset.x,y*resolution+this.offset.y,resolution,resolution)
+                    this.ctx.drawImage(this.getDrawing("text_"+this.grid[y][x].text), x*resolution+this.offset.x+1,y*resolution+this.offset.y+1,resolution-2,resolution-2)
                 }
             }
         }
+        this.ctx.imageSmoothingEnabled = true
     }
 
     drawGrid() {
