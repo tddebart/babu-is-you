@@ -1,18 +1,29 @@
 
 
 export default class Node {
+    // Text
     get isText(): boolean {
         return this._text !== "";
     }
     set text(value: string) {
         this._text = value;
-        this.isPushable = true;
     }
 
     get text(): string {
         return this._text;
     }
 
+
+    get isPushable(): boolean {
+        if(this.isPlayer || this.isText) return true;
+        return this._isPushable;
+    }
+
+    set isPushable(value: boolean) {
+        this._isPushable = value;
+    }
+
+    // Is object, verb or quality
     get isText_Object(): boolean {
         return objectNames.indexOf(this._text.toLowerCase()) !== -1;
     }
@@ -27,8 +38,8 @@ export default class Node {
     public y: number;
     private _text: string = "";
     public isPlayer: boolean = false;
-    public isPushable: boolean = false;
-    public objectName: string = "";
+    private _isPushable: boolean = false;
+    public objectNames: Array<string> = [];
 
     constructor(x:number,y:number) {
         this.x = x;
@@ -36,17 +47,19 @@ export default class Node {
     }
 }
 
-const objectNames = [
-    "baba",
-    "keke"
+export const objectNames = [
+    "babu",
+    "keke",
+    "me"
 ]
 
-const verbNames = [
+export const verbNames = [
     "is",
     "and"
 ]
 
-const qualityNames = [
+export const qualityNames = [
     "you",
-    "stop"
+    "stop",
+    "push"
 ]

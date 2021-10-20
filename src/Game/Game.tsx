@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import "./Game.css"
-import Canvas, {Drawing} from "./Canvas";
+import Canvas from "./Canvas";
 import Grid from "./Grid";
 
 export default class Game extends Component {
@@ -14,10 +14,9 @@ export default class Game extends Component {
 
     componentDidMount() {
         if (this.canvas) {
-            this.grid = new Grid(this.canvas, 10, 10, 50);
+            this.grid = new Grid(this.canvas, 10, 10, 70);
             window.addEventListener("resize", this.grid.setOffset.bind(this.grid))
             window.addEventListener('keydown',this.keyDetect.bind(this),false);
-            
         }
     }
 
@@ -31,6 +30,8 @@ export default class Game extends Component {
             pos.skip =false;
         }
 
+        this.grid.updateRules()
+        console.log(this.grid.rules);
     }
     
     keyDetect(e: KeyboardEvent) {
@@ -49,7 +50,8 @@ export default class Game extends Component {
     render() {
         return(
             <>
-                <button onClick={() => console.log(this.grid)}>Grid</button>
+                <button style={{position: "absolute", top: "10px"}} onClick={() => console.log(this.grid)}>Grid</button>
+                <div id={"rules-text"} style={{position: "absolute", top: "10px", left: "10px", textAlign: "left"}}/>
                 <Canvas ref={el => this.canvas = el}/>
             </>
         )
