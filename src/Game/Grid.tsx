@@ -64,8 +64,15 @@ export default class Grid extends Drawing {
 
     private gridImage: any;
 
-    public undoMoves: Array<Array<{x: number; y:number; xP: number; yP: number}>> = [];
+    public active: boolean = true;
+
+    public undoMoves: Array<Array<{x: number; y:number; xP: number; yP: number, doAction: boolean}>> = [];
+    public undoActions: Array<{node: Node, changeTo: any, changeOn: number}> = [];
+
+    public doAfterMove: Array<{node: Node, newObjectName: Array<string>}> = []
+
     public undoStep = 0;
+    public undoActionStep = 0;
     public rules: Rules;
 
     getDrawing(key: string) {
@@ -208,7 +215,7 @@ export default class Grid extends Drawing {
             if(this.undoMoves.length-1 !== this.undoStep) {
                 this.undoMoves.push([]);
             }
-            this.undoMoves[this.undoStep].push({x:x+xP, y:y+yP, xP: xP !==0 ? -xP : 0,yP: yP !==0 ? -yP : 0});
+            this.undoMoves[this.undoStep].push({x:x+xP, y:y+yP, xP: xP !==0 ? -xP : 0,yP: yP !==0 ? -yP : 0, doAction:false});
         }
 
         return true;
@@ -219,6 +226,7 @@ export default class Grid extends Drawing {
     //#region drawing
 
     draw() {
+        if(!this.active) return;
         this.ctx.clearRect(0,0,this.canvas.canvas.width,this.canvas.canvas.height)
         this.ctx.imageSmoothingEnabled = false
 

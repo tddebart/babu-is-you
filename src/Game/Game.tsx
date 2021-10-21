@@ -44,6 +44,15 @@ export default class Game extends Component {
             if(doExtra !== this.grid.playerPositions.length) {
                 this.grid.undoStep++;
             }
+
+            if(this.grid.doAfterMove.length !== 0) {
+                for (const doAfterMove of this.grid.doAfterMove) {
+                    doAfterMove.node.objectNames = doAfterMove.newObjectName;
+                }
+                this.grid.rules.resetAllNodeRules()
+            }
+            this.grid.rules.updateRules()
+
             this.canMove = false;
             setTimeout(() => {
                 this.canMove = true
@@ -62,8 +71,13 @@ export default class Game extends Component {
         for (let i = undoMoves.length-1; i >= 0; i--) {
             const undoMove = undoMoves[i]
             this.grid.moveNode(undoMove.x,undoMove.y, undoMove.xP, undoMove.yP,false,true)
+            for (const undoAction of this.grid.undoActions) {
+                if(undoAction.changeOn === this.grid.undoStep) {
+                    undoAction.node.objectNames = undoAction.changeTo;
+                    this.grid.doAfterMove = []
+                }
+            }
         }
-        //TODO: when baba turns into keke should turn back
         this.grid.rules.updateRules()
         this.grid.undoStep--;
         this.justUndone = true;

@@ -21,13 +21,18 @@ export default class Rules {
             for (let x = 0; x < this.grid.width; x++) {
                 const curNode = grid[y][x];
                 if(curNode.isText_Object) {
-                    if(grid[y][x+1].isText_Verb) {
-                        if(grid[y][x+2].isText_Quality || grid[y][x+2].isText_Object) {
-                            this.addRule(curNode.text + " " + grid[y][x+1].text + " " + grid[y][x+2].text)
+                    if(x+1 !< this.grid.width && x+2 !< this.grid.width) {
+                        if(grid[y][x+1].isText_Verb) {
+                            if(grid[y][x+2].isText_Quality || grid[y][x+2].isText_Object) {
+                                this.addRule(curNode.text + " " + grid[y][x+1].text + " " + grid[y][x+2].text)
+                            }
                         }
-                    }if(grid[y+1][x].isText_Verb) {
-                        if(grid[y+2][x].isText_Quality || grid[y+2][x].isText_Object) {
-                            this.addRule(curNode.text + " " + grid[y+1][x].text + " " + grid[y+2][x].text)
+                    }
+                    if(y+1 !< this.grid.height && y+2 !< this.grid.height) {
+                        if (grid[y + 1][x].isText_Verb) {
+                            if (grid[y + 2][x].isText_Quality || grid[y + 2][x].isText_Object) {
+                                this.addRule(curNode.text + " " + grid[y + 1][x].text + " " + grid[y + 2][x].text)
+                            }
                         }
                     }
                 }
@@ -54,8 +59,11 @@ export default class Rules {
 
             for (const node of nodesWithObjectName) {
                 if(objectNames.indexOf(qualityName) !== -1) {
-                    this.grid.playerPositions = []
-                    node.objectNames = [qualityName];
+                    // this.grid.playerPositions = []
+
+                    this.grid.undoActions.push({node: node, changeTo: node.objectNames, changeOn: this.grid.undoStep+1})
+
+                    this.grid.doAfterMove.push({node: node, newObjectName: [qualityName]})
                 }
                 switch (qualityName) {
                     case "you": {
