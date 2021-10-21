@@ -3,8 +3,11 @@ import {Component} from "react";
 export class Drawing {
     public canvas: Canvas;
     public ctx: CanvasRenderingContext2D;
-    constructor(canvas: Canvas) {
+    public currentFrame: number = 1;
+    public isAutoDrawn: boolean;
+    constructor(canvas: Canvas, isAutoDrawn: boolean = true) {
         this.canvas = canvas;
+        this.isAutoDrawn = isAutoDrawn;
         this.canvas.drawings.push(this);
         this.ctx = canvas.ctx;
     }
@@ -26,14 +29,15 @@ export default class Canvas extends Component {
     public ctx! : CanvasRenderingContext2D ;
 
     private lastFrameTime!: number;
+    public FRAMES_PER_SECOND: number = 60;
     private readonly FRAME_MIN_TIME;
+    public frameTime: number = 0;
 
 
     constructor(props: any) {
         super(props);
         this.state = {}
-        const FRAMES_PER_SECOND = 60;
-        this.FRAME_MIN_TIME = (1000/60) * (60 / FRAMES_PER_SECOND) - (1000/60) * 0.5;
+        this.FRAME_MIN_TIME = (1000/60) * (60 / this.FRAMES_PER_SECOND) - (1000/60) * 0.5;
     }
 
     componentDidMount() {
@@ -53,9 +57,27 @@ export default class Canvas extends Component {
 
         this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height)
         this.lastFrameTime = time;
-        for (const drawing of this.drawings) {
-            drawing.draw()
+
+        this.frameTime+=(1/(this.FRAMES_PER_SECOND))
+        let advanceFrame = false;
+        if((this.frameTime % 1) > 0.25){
+            this.frameTime = 0;
+            advanceFrame = true;
         }
+
+        for (const drawing of this.drawings) {
+            if(drawing.isAutoDrawn) {
+                drawing.draw()
+            }
+            if(advanceFrame) {
+                if(drawing.currentFrame !== 3) {
+                    drawing.currentFrame++;
+                } else  {
+                    drawing.currentFrame = 1;
+                }
+            }
+        }
+
         window.requestAnimationFrame(this.draw.bind(this))
     }
 

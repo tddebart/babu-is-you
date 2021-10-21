@@ -6,6 +6,7 @@ import Grid from "./Grid";
 export default class Game extends Component {
     private canvas!: Canvas | null;
     private grid!:Grid;
+    private canMove: boolean = true;
 
     constructor(props: any) {
         super(props);
@@ -16,11 +17,12 @@ export default class Game extends Component {
         if (this.canvas) {
             this.grid = new Grid(this.canvas, 10, 10, 70);
             window.addEventListener("resize", this.grid.setOffset.bind(this.grid))
-            window.addEventListener('keydown',this.keyDetect.bind(this),false);
+            window.addEventListener('keydown',this.keyDetectDown.bind(this),false);
         }
     }
 
     movePlayers(xP:number, yP:number) {
+        if(!this.canMove) return;
         for (const pos of this.grid.playerPositions) {
             if(pos.skip) {
                 pos.skip = false;
@@ -31,10 +33,11 @@ export default class Game extends Component {
         }
 
         this.grid.updateRules()
-        console.log(this.grid.rules);
+        this.canMove = false;
+        setTimeout(() => {this.canMove = true}, 100)
     }
     
-    keyDetect(e: KeyboardEvent) {
+    keyDetectDown(e: KeyboardEvent) {
         if(e.key === "w") {
             this.movePlayers(0,-1)
         }

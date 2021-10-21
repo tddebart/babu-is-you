@@ -11,6 +11,9 @@ you have text-object like BABA
 you have text-verb like is, and
 you have text-quality
 
+# Sprite naming scheme
+
+
 # Copyright (c)
 
 I do not own any right to any images used in this game please don't sue me

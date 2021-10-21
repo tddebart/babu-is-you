@@ -1,5 +1,52 @@
 import Canvas, {Drawing} from "./Canvas";
-import Node, {objectNames} from "./Node";
+import Node, {objectNames, specialObjects} from "./Node";
+
+class AnimatedImage extends Drawing {
+    public currentDirection: number = 0;
+    public imageName: string;
+
+    public drawings: Array<Array<any>> = []
+
+    public x: number = 0;
+    public y: number = 0;
+    public offset!: { x: number; y: number };
+    private resolution: number;
+
+    constructor(canvas: Canvas, imageName: string, resolution: number) {
+        super(canvas, false);
+        this.imageName = imageName;
+        this.resolution = resolution;
+        this.initializeDrawings();
+    }
+
+    initializeDrawings() {
+        for (let j = 0; j < 1; j++) {
+            this.drawings[j] = [];
+            for (let i = 1; i < 4; i++) {
+                this.drawings[j][i] = undefined;
+            }
+        }
+
+        for (let j = 0; j < 1; j++) {
+            for (let i = 1; i < 4; i++) {
+                let img = new Image(24,24);
+                if(specialObjects.indexOf(this.imageName) !== -1) {
+                    img.src = process.env.PUBLIC_URL+"/img/"+this.imageName + "/" + this.imageName + "_" + j + "_" + i + '.png'
+                } else if (this.imageName.includes('text')) {
+                    img.src = process.env.PUBLIC_URL+"/img/texts/" + this.imageName + "_" + j + "_" + i + '.png'
+                } else {
+                    img.src = process.env.PUBLIC_URL+"/img/" + this.imageName + "_" + j + "_" + i + '.png'
+                }
+
+                this.drawings[0][i] = img
+            }
+        }
+    }
+
+    draw() {
+        this.ctx.drawImage(this.drawings[this.currentDirection][this.currentFrame], this.x*this.resolution+this.offset.x+1,this.y*this.resolution+this.offset.y+1,this.resolution-2,this.resolution-2)
+    }
+}
 
 export default class Grid extends Drawing {
     public width: number
@@ -12,15 +59,15 @@ export default class Grid extends Drawing {
 
     public playerPositions: Array<{ x: number; y: number, skip: boolean }> = [];
 
-    private drawings: {[key: string]: any} = {}
+    private drawings: {[key: string]: AnimatedImage} = {}
 
     public rules: Array<string> = [];
 
+    private gridImage: any;
+
     getDrawing(key: string) {
         if(!(key in this.drawings)) {
-            let img = new Image(24,24);
-            img.src = process.env.PUBLIC_URL+"/img/" + key + '.png'
-            this.drawings[key] = img;
+            this.drawings[key] = new AnimatedImage(this.canvas, key, this.resolution);
         }
         return this.drawings[key]
     }
@@ -42,7 +89,7 @@ export default class Grid extends Drawing {
     }
 
     initializeDrawings() {
-        this.drawings["grid"] = this.drawGrid()
+        this.gridImage = this.drawGrid()
     }
 
     initializeGrid(width:number, height:number) {
@@ -59,29 +106,32 @@ export default class Grid extends Drawing {
                     this.grid[y][x].objectNames.push('babu')
                 }
                 if((x===7 && y===5)) {
-                    this.grid[y][x].objectNames.push('keke');
+                    this.grid[y][x].objectNames.push('keke')
+                    // this.grid[y][x].objectNames.push('me');
                 }
+
                 if((x===3 && y===3)) {
                     this.grid[y][x].text = "babu";
                 }
-                if((x===3 && y===6)) {
-                    this.grid[y][x].text = "keke";
-                }
                 if((x===4 && y===3)) {
-                    this.grid[y][x].text = "is";
-                }
-                if((x===3 && y===4  )) {
                     this.grid[y][x].text = "is";
                 }
                 if((x===5 && y===3)) {
                     this.grid[y][x].text = "you";
                 }
-                if((x===5 && y===2)) {
-                    this.grid[y][x].text = "is";
-                }
-                if((x===5 && y===1)) {
-                    this.grid[y][x].text = "keke";
-                }
+
+                // if((x===3 && y===6)) {
+                //     this.grid[y][x].text = "keke";
+                // }
+                // if((x===3 && y===4  )) {
+                //     this.grid[y][x].text = "is";
+                // }
+                // if((x===5 && y===2)) {
+                //     this.grid[y][x].text = "is";
+                // }
+                // if((x===5 && y===1)) {
+                //     this.grid[y][x].text = "keke";
+                // }
             }
         }
     }
@@ -222,9 +272,9 @@ export default class Grid extends Drawing {
             this.playerPositions[plIndex].skip = true;
         }
 
-        this.grid[y][x] = new Node(y,x);
+        this.grid[y][x] = new Node(x,y);
         if(nodeObjNames.length > 1) {
-            this.grid[y][x].objectNames = nodeObjNames.splice(0,1)
+            this.grid[y][x].objectNames = nodeObjNames.splice(0,nodeObjNames.length - 1)
         }
         return true;
     }
@@ -234,28 +284,47 @@ export default class Grid extends Drawing {
     //#region drawing
 
     draw() {
+        this.ctx.clearRect(0,0,this.canvas.canvas.width,this.canvas.canvas.height)
         this.ctx.imageSmoothingEnabled = false
 
-        const resolution = this.resolution;
-
-        // for (const pos of this.playerPositions) {
-        //     this.ctx.drawImage(this.getDrawing('babu'),pos.x*resolution+this.offset.x,pos.y*resolution+this.offset.y,resolution,resolution)
-        // }
-
+        this.ctx.drawImage(this.gridImage, this.offset.x, this.offset.y)
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
+                // if(this.grid[y][x].isText) {
+                //     // this.ctx.globalCompositeOperation = "destination-in";
+                //     this.ctx.drawImage(this.getDrawing("text_"+this.grid[y][x].text), Math.floor(x*resolution+this.offset.x+1),Math.floor(y*resolution+this.offset.y+1),resolution-2,resolution-2)
+                // }
+                // if(this.grid[y][x].objectNames.length > 0) {
+                //     for (const objectName of this.grid[y][x].objectNames) {
+                //         this.ctx.drawImage(this.getDrawing(objectName), x*resolution+this.offset.x+1,y*resolution+this.offset.y+1,resolution-2,resolution-2)
+                //     }
+                // }
                 if(this.grid[y][x].isText) {
-                    // this.ctx.globalCompositeOperation = "destination-in";
-                    this.ctx.drawImage(this.getDrawing("text_"+this.grid[y][x].text), Math.floor(x*resolution+this.offset.x+1),Math.floor(y*resolution+this.offset.y+1),resolution-2,resolution-2)
+                    const drawing = this.getDrawing("text_"+this.grid[y][x].text);
+                    drawing.x = x;
+                    drawing.y = y;
+                    drawing.offset = this.offset;
+                    drawing.draw()
                 }
                 if(this.grid[y][x].objectNames.length > 0) {
-                    for (const objectName of this.grid[y][x].objectNames) {
-                        this.ctx.drawImage(this.getDrawing(objectName), x*resolution+this.offset.x+1,y*resolution+this.offset.y+1,resolution-2,resolution-2)
+                    for (let i = this.grid[y][x].objectNames.length-1; i >= 0; i--) {
+                        const objectName = this.grid[y][x].objectNames[i]
+                        const drawing = this.getDrawing(objectName);
+                        drawing.x = x;
+                        drawing.y = y;
+                        drawing.offset = this.offset;
+                        drawing.draw()
                     }
+                    // for (const objectName of this.grid[y][x].objectNames) {
+                    //     const drawing = this.getDrawing(objectName);
+                    //     drawing.x = x;
+                    //     drawing.y = y;
+                    //     drawing.offset = this.offset;
+                    //     drawing.draw()
+                    // }
                 }
             }
         }
-        this.ctx.drawImage(this.drawings["grid"], this.offset.x, this.offset.y)
         // this.ctx.imageSmoothingEnabled = true
     }
 
