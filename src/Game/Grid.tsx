@@ -10,7 +10,7 @@ class AnimatedImage extends Drawing {
     public x: number = 0;
     public y: number = 0;
     public offset!: { x: number; y: number };
-    private resolution: number;
+    private readonly resolution: number;
 
     constructor(canvas: Canvas, imageName: string, resolution: number) {
         super(canvas, false);
@@ -64,6 +64,9 @@ export default class Grid extends Drawing {
     public rules: Array<string> = [];
 
     private gridImage: any;
+
+    public undoMoves: Array<Array<{x: number; y:number; xP: number; yP: number}>> = [];
+    public undoStep = 0;
 
     getDrawing(key: string) {
         if(!(key in this.drawings)) {
@@ -147,6 +150,7 @@ export default class Grid extends Drawing {
         if(text !== null) {
             this.grid[gridPos.y][gridPos.x].text = text;
         }
+        this.updateRules();
     }
 
     updateRules() {
@@ -246,7 +250,7 @@ export default class Grid extends Drawing {
         }
     }
 
-    moveNode(x:number, y:number, xP:number, yP:number, skipMoveCheck:boolean = false): boolean {
+    moveNode(x:number, y:number, xP:number, yP:number, skipMoveCheck:boolean = false, skipAddUndoCheck:boolean = false): boolean {
         const node = this.grid[y][x]
 
         if(!skipMoveCheck && !this.canMoveIntoNode(x+xP, y+yP, xP, yP)) {
@@ -266,7 +270,7 @@ export default class Grid extends Drawing {
 
         const plIndex = this.playerPositions.findIndex(pos => pos.x === x && pos.y === y)
 
-        if(node.isPlayer) {
+        if(node.isPlayer && plIndex !== -1) {
             this.playerPositions[plIndex].x += xP;
             this.playerPositions[plIndex].y += yP;
             this.playerPositions[plIndex].skip = true;
@@ -276,6 +280,15 @@ export default class Grid extends Drawing {
         if(nodeObjNames.length > 1) {
             this.grid[y][x].objectNames = nodeObjNames.splice(0,nodeObjNames.length - 1)
         }
+
+        // undo moves
+        if(!skipAddUndoCheck) {
+            if(this.undoMoves.length-1 !== this.undoStep) {
+                this.undoMoves.push([]);
+            }
+            this.undoMoves[this.undoStep].push({x:x+xP, y:y+yP, xP: xP !==0 ? -xP : 0,yP: yP !==0 ? -yP : 0});
+        }
+
         return true;
     }
 
@@ -299,29 +312,27 @@ export default class Grid extends Drawing {
                 //         this.ctx.drawImage(this.getDrawing(objectName), x*resolution+this.offset.x+1,y*resolution+this.offset.y+1,resolution-2,resolution-2)
                 //     }
                 // }
+                for (let i = this.grid[y][x].objectNames.length-1; i >= 0; i--) {
+                    const objectName = this.grid[y][x].objectNames[i]
+                    const drawing = this.getDrawing(objectName);
+                    drawing.x = x;
+                    drawing.y = y;
+                    drawing.offset = this.offset;
+                    drawing.draw()
+                }
+                // for (const objectName of this.grid[y][x].objectNames) {
+                //     const drawing = this.getDrawing(objectName);
+                //     drawing.x = x;
+                //     drawing.y = y;
+                //     drawing.offset = this.offset;
+                //     drawing.draw()
+                // }
                 if(this.grid[y][x].isText) {
                     const drawing = this.getDrawing("text_"+this.grid[y][x].text);
                     drawing.x = x;
                     drawing.y = y;
                     drawing.offset = this.offset;
                     drawing.draw()
-                }
-                if(this.grid[y][x].objectNames.length > 0) {
-                    for (let i = this.grid[y][x].objectNames.length-1; i >= 0; i--) {
-                        const objectName = this.grid[y][x].objectNames[i]
-                        const drawing = this.getDrawing(objectName);
-                        drawing.x = x;
-                        drawing.y = y;
-                        drawing.offset = this.offset;
-                        drawing.draw()
-                    }
-                    // for (const objectName of this.grid[y][x].objectNames) {
-                    //     const drawing = this.getDrawing(objectName);
-                    //     drawing.x = x;
-                    //     drawing.y = y;
-                    //     drawing.offset = this.offset;
-                    //     drawing.draw()
-                    // }
                 }
             }
         }

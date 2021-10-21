@@ -7,6 +7,7 @@ export default class Game extends Component {
     private canvas!: Canvas | null;
     private grid!:Grid;
     private canMove: boolean = true;
+    private justUndone: boolean = false;
 
     constructor(props: any) {
         super(props);
@@ -23,18 +24,44 @@ export default class Game extends Component {
 
     movePlayers(xP:number, yP:number) {
         if(!this.canMove) return;
-        for (const pos of this.grid.playerPositions) {
-            if(pos.skip) {
-                pos.skip = false;
-                continue
+        if(this.grid.playerPositions.length !== 0) {
+            this.grid.undoMoves.length = this.grid.undoStep;
+            if (this.grid.undoMoves.length > 50) {
+                this.grid.undoMoves.shift();
+                this.grid.undoStep--
             }
-            this.grid.moveNode(pos.x,pos.y,xP,yP)
-            pos.skip =false;
-        }
+            for (const pos of this.grid.playerPositions) {
+                if (pos.skip) {
+                    pos.skip = false;
+                    continue
+                }
+                this.grid.moveNode(pos.x, pos.y, xP, yP)
+                pos.skip = false;
+            }
 
+            this.grid.updateRules()
+            this.canMove = false;
+            this.grid.undoStep++;
+            console.log(this.grid.undoMoves)
+            setTimeout(() => {
+                this.canMove = true
+            }, 100)
+        }
+    }
+
+    undoMoves() {
+        if(this.grid.undoStep-1 < 0) return;
+        this.canMove = false
+        const undoMoves = this.grid.undoMoves[this.grid.undoStep-1].slice()
+        for (let i = undoMoves.length-1; i >= 0; i--) {
+            const undoMove = undoMoves[i]
+            this.grid.moveNode(undoMove.x,undoMove.y, undoMove.xP, undoMove.yP,false,true)
+        }
         this.grid.updateRules()
-        this.canMove = false;
-        setTimeout(() => {this.canMove = true}, 100)
+        this.grid.undoStep--;
+        // console.log(this.grid.undoMoves + " | " + this.grid.undoStep)
+        this.justUndone = true;
+        this.canMove = true;
     }
     
     keyDetectDown(e: KeyboardEvent) {
@@ -47,6 +74,9 @@ export default class Game extends Component {
             this.movePlayers(0,1)
         } else if(e.key === "d") {
             this.movePlayers(1,0)
+        }
+        else if(e.key === "z") {
+            this.undoMoves();
         }
     }
 
