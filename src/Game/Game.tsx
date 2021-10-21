@@ -30,19 +30,21 @@ export default class Game extends Component {
                 this.grid.undoMoves.shift();
                 this.grid.undoStep--
             }
+            let doExtra = 0;
             for (const pos of this.grid.playerPositions) {
                 if (pos.skip) {
                     pos.skip = false;
                     continue
                 }
-                this.grid.moveNode(pos.x, pos.y, xP, yP)
+                if(!this.grid.moveNode(pos.x, pos.y, xP, yP)) doExtra++;
                 pos.skip = false;
             }
 
-            this.grid.updateRules()
+            this.grid.rules.updateRules()
+            if(doExtra !== this.grid.playerPositions.length) {
+                this.grid.undoStep++;
+            }
             this.canMove = false;
-            this.grid.undoStep++;
-            console.log(this.grid.undoMoves)
             setTimeout(() => {
                 this.canMove = true
             }, 100)
@@ -52,14 +54,18 @@ export default class Game extends Component {
     undoMoves() {
         if(this.grid.undoStep-1 < 0) return;
         this.canMove = false
+        if(this.grid.undoMoves.length < this.grid.undoStep) {
+            console.error("Could not do undo with: " + this.grid.undoMoves + " and " + this.grid.undoStep);
+            return
+        }
         const undoMoves = this.grid.undoMoves[this.grid.undoStep-1].slice()
         for (let i = undoMoves.length-1; i >= 0; i--) {
             const undoMove = undoMoves[i]
             this.grid.moveNode(undoMove.x,undoMove.y, undoMove.xP, undoMove.yP,false,true)
         }
-        this.grid.updateRules()
+        //TODO: when baba turns into keke should turn back
+        this.grid.rules.updateRules()
         this.grid.undoStep--;
-        // console.log(this.grid.undoMoves + " | " + this.grid.undoStep)
         this.justUndone = true;
         this.canMove = true;
     }

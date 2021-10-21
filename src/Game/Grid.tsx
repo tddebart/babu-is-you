@@ -1,5 +1,6 @@
 import Canvas, {Drawing} from "./Canvas";
-import Node, {objectNames, specialObjects} from "./Node";
+import Node, {specialObjects} from "./Node";
+import Rules from "./rules";
 
 class AnimatedImage extends Drawing {
     public currentDirection: number = 0;
@@ -61,12 +62,11 @@ export default class Grid extends Drawing {
 
     private drawings: {[key: string]: AnimatedImage} = {}
 
-    public rules: Array<string> = [];
-
     private gridImage: any;
 
     public undoMoves: Array<Array<{x: number; y:number; xP: number; yP: number}>> = [];
     public undoStep = 0;
+    public rules: Rules;
 
     getDrawing(key: string) {
         if(!(key in this.drawings)) {
@@ -83,7 +83,8 @@ export default class Grid extends Drawing {
         this.setOffset()
         this.initializeGrid(width, height)
         this.initializeDrawings()
-        this.updateRules()
+        this.rules = new Rules(this);
+        this.rules.updateRules()
         this.canvas.canvas.addEventListener('click', this.calculateText.bind(this));
     }
 
@@ -123,15 +124,15 @@ export default class Grid extends Drawing {
                     this.grid[y][x].text = "you";
                 }
 
-                // if((x===3 && y===6)) {
-                //     this.grid[y][x].text = "keke";
-                // }
-                // if((x===3 && y===4  )) {
-                //     this.grid[y][x].text = "is";
-                // }
-                // if((x===5 && y===2)) {
-                //     this.grid[y][x].text = "is";
-                // }
+                if((x===5 && y===1)) {
+                    this.grid[y][x].text = "keke";
+                }
+                if((x===6 && y===1  )) {
+                    this.grid[y][x].text = "is";
+                }
+                if((x===7 && y===1)) {
+                    this.grid[y][x].text = "stop";
+                }
                 // if((x===5 && y===1)) {
                 //     this.grid[y][x].text = "keke";
                 // }
@@ -150,88 +151,7 @@ export default class Grid extends Drawing {
         if(text !== null) {
             this.grid[gridPos.y][gridPos.x].text = text;
         }
-        this.updateRules();
-    }
-
-    updateRules() {
-        this.rules = [];
-        const grid = this.grid;
-        const rulesText = document.getElementById("rules-text")
-        if(rulesText != null) {
-            rulesText.innerText = ""
-        }
-        // convert every rule in blocks on the grid into an array with rules
-        for (let y = 0; y < this.height; y++) {
-            for (let x = 0; x < this.width; x++) {
-                const curNode = grid[y][x];
-                if(curNode.isText_Object) {
-                    if(grid[y][x+1].isText_Verb) {
-                        if(grid[y][x+2].isText_Quality || grid[y][x+2].isText_Object) {
-                            this.addRule(curNode.text + " " + grid[y][x+1].text + " " + grid[y][x+2].text)
-                        }
-                    }if(grid[y+1][x].isText_Verb) {
-                        if(grid[y+2][x].isText_Quality || grid[y+2][x].isText_Object) {
-                            this.addRule(curNode.text + " " + grid[y+1][x].text + " " + grid[y+2][x].text)
-                        }
-                    }
-                }
-            }
-        }
-
-        // Removes duplicates from rules array
-        this.rules = Array.from(new Set(this.rules))
-
-        this.resetAllNodeRules()
-        for (const rule of this.rules) {
-            const rules = rule.split(" ");
-            const objectName = rules[0];
-            const qualityName = rules[2];
-
-            let nodesWithObjectName = [];
-            for (let y = 0; y < this.height; y++) {
-                for (let x = 0; x < this.width; x++) {
-                    if (grid[y][x].objectNames.some(value => value === objectName)) {
-                        nodesWithObjectName.push(grid[y][x])
-                    }
-                }
-            }
-
-            for (const node of nodesWithObjectName) {
-                if(objectNames.indexOf(qualityName) !== -1) {
-                    this.playerPositions = []
-                    node.objectNames = [qualityName];
-                }
-                switch (qualityName) {
-                    case "you": {
-                        node.isPlayer = true;
-                        this.playerPositions.push({x:node.x,y:node.y, skip:false});
-                        break;
-                    }
-                    case "push": {
-                        node.isPushable = true;
-                        break;
-                    }
-
-                }
-            }
-            if(rulesText != null) {
-                rulesText.innerText += rule+"\n";
-            }
-        }
-    }
-
-    resetAllNodeRules() {
-        this.playerPositions = []
-        for (let y = 0; y < this.height; y++) {
-            for (let x = 0; x < this.width; x++) {
-                this.grid[y][x].isPlayer = false;
-                this.grid[y][x].isPushable = false;
-            }
-        }
-    }
-
-    addRule(rule:string) {
-        this.rules.push(rule);
+        this.rules.updateRules();
     }
 
     //#region moving
@@ -245,6 +165,8 @@ export default class Grid extends Drawing {
                 this.moveNode(x, y, xP,yP)
                 return true
             }
+        } else if(grid[y][x].is('stop')) {
+            return false
         } else {
             return !grid[y][x].isPlayer
         }

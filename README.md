@@ -1,6 +1,6 @@
 # Babu is you
 
-a knockoff recreation of the game baba is you
+a knockoff recreation of the game [baba is you](https://store.steampowered.com/app/736260/Baba_Is_You/)
 
 https://tddebart.github.io/babu-is-you
 
@@ -16,4 +16,4 @@ you have text-quality
 
 # Copyright (c)
 
-I do not own any right to any images used in this game please don't sue me
+I do not own any right to any images/sprites used in this game please don't sue me
