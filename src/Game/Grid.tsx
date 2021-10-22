@@ -1,5 +1,5 @@
 import Canvas, {Drawing} from "./Canvas";
-import Node, {specialObjects} from "./Node";
+import Tile, {Node, specialObjects} from "./Node";
 import Rules from "./rules";
 
 class AnimatedImage extends Drawing {
@@ -55,7 +55,7 @@ export default class Grid extends Drawing {
 
     public resolution: number
 
-    public grid: Array<Array<Node>> = [];
+    public grid: Array<Array<Tile>> = [];
     private offset!: { x: number; y: number };
 
     public playerPositions: Array<{ x: number; y: number, skip: boolean }> = [];
@@ -66,10 +66,10 @@ export default class Grid extends Drawing {
 
     public active: boolean = true;
 
-    public undoMoves: Array<Array<{x: number; y:number; xP: number; yP: number, doAction: boolean}>> = [];
+    public undoMoves: Array<Array<{node:Node, xP: number; yP: number, doAction: boolean}>> = [];
     public undoActions: Array<{node: Node, changeTo: any, changeOn: number}> = [];
 
-    public doAfterMove: Array<{node: Node, newObjectName: Array<string>}> = []
+    public doAfterMove: Array<{node: Node, newObjectName: string}> = []
 
     public undoStep = 0;
     public undoActionStep = 0;
@@ -107,39 +107,40 @@ export default class Grid extends Drawing {
         for (let y = 0; y < height; y++) {
             const currentY = []
             for (let x = 0; x < width; x++) {
-                currentY.push(new Node(x,y))
+                currentY.push(new Tile(x,y))
             }
             this.grid.push(currentY)
         }
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 if((x===5 && y===5)) {
-                    this.grid[y][x].objectNames.push('babu')
+                    this.grid[y][x].nodes.push(new Node(x,y,"", 'babu'))
                 }
                 if((x===7 && y===5)) {
-                    this.grid[y][x].objectNames.push('keke')
-                    // this.grid[y][x].objectNames.push('me');
+                    this.grid[y][x].nodes.push(new Node(x,y,"", 'keke'))
+                    this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
                 }
 
                 if((x===3 && y===3)) {
-                    this.grid[y][x].text = "babu";
+                    this.grid[y][x].nodes.push(new Node(x,y,"babu"))
                 }
                 if((x===4 && y===3)) {
-                    this.grid[y][x].text = "is";
+                    this.grid[y][x].nodes.push(new Node(x,y,"is"))
                 }
                 if((x===5 && y===3)) {
-                    this.grid[y][x].text = "you";
+                    this.grid[y][x].nodes.push(new Node(x,y,"you"))
                 }
+                //
+                // if((x===5 && y===1)) {
+                //     this.grid[y][x].text = "keke";
+                // }
+                // if((x===6 && y===1  )) {
+                //     this.grid[y][x].text = "is";
+                // }
+                // if((x===7 && y===1)) {
+                //     this.grid[y][x].text = "stop";
+                // }
 
-                if((x===5 && y===1)) {
-                    this.grid[y][x].text = "keke";
-                }
-                if((x===6 && y===1  )) {
-                    this.grid[y][x].text = "is";
-                }
-                if((x===7 && y===1)) {
-                    this.grid[y][x].text = "stop";
-                }
                 // if((x===5 && y===1)) {
                 //     this.grid[y][x].text = "keke";
                 // }
@@ -156,68 +157,62 @@ export default class Grid extends Drawing {
         }
         const text = prompt("Give a text value.")
         if(text !== null) {
-            this.grid[gridPos.y][gridPos.x].text = text;
+            this.grid[gridPos.y][gridPos.x].nodes.push(new Node(gridPos.x,gridPos.y,text))
         }
         this.rules.updateRules();
     }
 
     //#region moving
 
-    canMoveIntoNode(x:number, y:number, xP:number, yP:number) {
+    canMoveIntoNode(node:Node, xP:number, yP:number) {
         const grid = this.grid;
-        if(x < 0 || x > this.width-1 || y < 0 || y > this.height-1) {
-            return false
-        } else if(grid[y][x].isPushable) {
-            if(this.canMoveIntoNode(x+xP, y+yP, xP, yP)) {
-                this.moveNode(x, y, xP,yP)
-                return true
+
+        const x = node.x;
+        const y = node.y;
+        if(x+xP < 0 || x+xP > this.width-1 || y+yP < 0 || y+yP > this.height-1) return false;
+        for (let i = 0; i < grid[y+yP][x+xP].nodes.length; i++) {
+            const nextNode = grid[y+yP][x+xP].nodes[i];
+            if(nextNode.isPushable) {
+                if(nextNode.x+xP < 0 || nextNode.x+xP > this.width-1 || nextNode.y+yP < 0 || nextNode.y+yP > this.height-1) return false;
+                if(grid[nextNode.y+yP][nextNode.x+xP].nodes.length === 0) {
+                    this.moveNode(nextNode, xP,yP)
+                    return true;
+                }
+                for (const nodeAfterNext of grid[nextNode.y+yP][nextNode.x+xP].nodes) {
+                    if(this.canMoveIntoNode(nodeAfterNext, xP, yP)) {
+                        this.moveNode(nextNode, xP,yP)
+                        return true;
+                    }
+                }
+                return false;
+            } else if(nextNode.is('stop')) {
+                return false
             }
-        } else if(grid[y][x].is('stop')) {
-            return false
-        } else {
-            return !grid[y][x].isPlayer
         }
+        return true;
     }
 
-    moveNode(x:number, y:number, xP:number, yP:number, skipMoveCheck:boolean = false, skipAddUndoCheck:boolean = false): boolean {
-        const node = this.grid[y][x]
+    moveNode(node: Node, xP:number, yP:number, skipMoveCheck:boolean = false, skipAddUndoCheck:boolean = false): boolean {
 
-        if(!skipMoveCheck && !this.canMoveIntoNode(x+xP, y+yP, xP, yP)) {
+        if(!skipMoveCheck && !this.canMoveIntoNode(node, xP, yP)) {
             return false;
         }
 
-        const nodeObjNames = node.objectNames;
-        const nextObjNames = this.grid[y+yP][x+xP].objectNames;
+        const curTile = this.grid[node.y][node.x];
+        const nextTile = this.grid[node.y+yP][node.x+xP];
 
-        this.grid[y+yP][x+xP] = node;
-        this.grid[y+yP][x+xP].objectNames = nextObjNames.concat(this.grid[y+yP][x+xP].objectNames)
-        if(nodeObjNames.length > 1) {
-            this.grid[y+yP][x+xP].objectNames = [node.objectNames[node.objectNames.length-1]]
-        }
-        this.grid[y+yP][x+xP].x+=xP;
-        this.grid[y+yP][x+xP].y+=yP;
+        node.x += xP;
+        node.y += yP;
+        nextTile.nodes.push(node);
+        curTile.nodes.splice(curTile.nodes.indexOf(node), 1);
 
-        const plIndex = this.playerPositions.findIndex(pos => pos.x === x && pos.y === y)
-
-        if(node.isPlayer && plIndex !== -1) {
-            this.playerPositions[plIndex].x += xP;
-            this.playerPositions[plIndex].y += yP;
-            this.playerPositions[plIndex].skip = true;
-        }
-
-        this.grid[y][x] = new Node(x,y);
-        if(nodeObjNames.length > 1) {
-            this.grid[y][x].objectNames = nodeObjNames.splice(0,nodeObjNames.length - 1)
-        }
-
-        // undo moves
+        // Undo moves
         if(!skipAddUndoCheck) {
             if(this.undoMoves.length-1 !== this.undoStep) {
                 this.undoMoves.push([]);
             }
-            this.undoMoves[this.undoStep].push({x:x+xP, y:y+yP, xP: xP !==0 ? -xP : 0,yP: yP !==0 ? -yP : 0, doAction:false});
+            this.undoMoves[this.undoStep].push({node:nextTile.nodes[nextTile.nodes.length-1], xP: xP !==0 ? -xP : 0,yP: yP !==0 ? -yP : 0, doAction:false});
         }
-
         return true;
     }
 
@@ -233,36 +228,22 @@ export default class Grid extends Drawing {
         this.ctx.drawImage(this.gridImage, this.offset.x, this.offset.y)
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
-                // if(this.grid[y][x].isText) {
-                //     // this.ctx.globalCompositeOperation = "destination-in";
-                //     this.ctx.drawImage(this.getDrawing("text_"+this.grid[y][x].text), Math.floor(x*resolution+this.offset.x+1),Math.floor(y*resolution+this.offset.y+1),resolution-2,resolution-2)
-                // }
-                // if(this.grid[y][x].objectNames.length > 0) {
-                //     for (const objectName of this.grid[y][x].objectNames) {
-                //         this.ctx.drawImage(this.getDrawing(objectName), x*resolution+this.offset.x+1,y*resolution+this.offset.y+1,resolution-2,resolution-2)
-                //     }
-                // }
-                for (let i = this.grid[y][x].objectNames.length-1; i >= 0; i--) {
-                    const objectName = this.grid[y][x].objectNames[i]
-                    const drawing = this.getDrawing(objectName);
-                    drawing.x = x;
-                    drawing.y = y;
-                    drawing.offset = this.offset;
-                    drawing.draw()
-                }
-                // for (const objectName of this.grid[y][x].objectNames) {
-                //     const drawing = this.getDrawing(objectName);
-                //     drawing.x = x;
-                //     drawing.y = y;
-                //     drawing.offset = this.offset;
-                //     drawing.draw()
-                // }
-                if(this.grid[y][x].isText) {
-                    const drawing = this.getDrawing("text_"+this.grid[y][x].text);
-                    drawing.x = x;
-                    drawing.y = y;
-                    drawing.offset = this.offset;
-                    drawing.draw()
+                for (let j = 0; j < this.grid[y][x].nodes.length; j++){
+                    const node = this.grid[y][x].nodes[j];
+                    if(node.objectName !== "") {
+                        const drawing = this.getDrawing(node.objectName);
+                        drawing.x = x;
+                        drawing.y = y;
+                        drawing.offset = this.offset;
+                        drawing.draw()
+                    }
+                    if(node.isText) {
+                        const drawing = this.getDrawing("text_"+node.text);
+                        drawing.x = x;
+                        drawing.y = y;
+                        drawing.offset = this.offset;
+                        drawing.draw()
+                    }
                 }
             }
         }

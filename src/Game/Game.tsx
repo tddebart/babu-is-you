@@ -36,24 +36,34 @@ export default class Game extends Component {
                     pos.skip = false;
                     continue
                 }
-                if(!this.grid.moveNode(pos.x, pos.y, xP, yP)) doExtra++;
-                pos.skip = false;
+                const findPlayerNode = this.grid.grid[pos.y][pos.x].nodes.find(v => v.isPlayer);
+                if(findPlayerNode != null) {
+                    if(!this.grid.moveNode(findPlayerNode, xP, yP)) doExtra++;
+                    pos.skip = false;
+                }
             }
 
             this.grid.rules.updateRules()
-            if(doExtra !== this.grid.playerPositions.length) {
-                this.grid.undoStep++;
+            let howManyRulesNotYou = 0;
+            for (const rule of this.grid.rules.rules) {
+                if(rule.split(" ")[2] !== "you") {
+                    howManyRulesNotYou++;
+                }
+            }
+            if(doExtra !== this.grid.playerPositions.length || howManyRulesNotYou === this.grid.rules.rules.length) {
+                this.grid.undoStep++
             }
 
             if(this.grid.doAfterMove.length !== 0) {
                 for (const doAfterMove of this.grid.doAfterMove) {
-                    doAfterMove.node.objectNames = doAfterMove.newObjectName;
+                    doAfterMove.node.objectName = doAfterMove.newObjectName;
                 }
                 this.grid.rules.resetAllNodeRules()
             }
             this.grid.rules.updateRules()
 
             this.canMove = false;
+
             setTimeout(() => {
                 this.canMove = true
             }, 100)
@@ -70,10 +80,10 @@ export default class Game extends Component {
         const undoMoves = this.grid.undoMoves[this.grid.undoStep-1].slice()
         for (let i = undoMoves.length-1; i >= 0; i--) {
             const undoMove = undoMoves[i]
-            this.grid.moveNode(undoMove.x,undoMove.y, undoMove.xP, undoMove.yP,false,true)
+            this.grid.moveNode(undoMove.node, undoMove.xP, undoMove.yP,false,true)
             for (const undoAction of this.grid.undoActions) {
                 if(undoAction.changeOn === this.grid.undoStep) {
-                    undoAction.node.objectNames = undoAction.changeTo;
+                    undoAction.node.objectName = undoAction.changeTo;
                     this.grid.doAfterMove = []
                 }
             }

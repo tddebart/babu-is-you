@@ -19,19 +19,29 @@ export default class Rules {
         // convert every rule in blocks on the grid into an array with rules
         for (let y = 0; y < this.grid.height; y++) {
             for (let x = 0; x < this.grid.width; x++) {
-                const curNode = grid[y][x];
-                if(curNode.isText_Object) {
-                    if(x+1 !< this.grid.width && x+2 !< this.grid.width) {
-                        if(grid[y][x+1].isText_Verb) {
-                            if(grid[y][x+2].isText_Quality || grid[y][x+2].isText_Object) {
-                                this.addRule(curNode.text + " " + grid[y][x+1].text + " " + grid[y][x+2].text)
+                for (let i = 0; i < grid[y][x].nodes.length; i++) {
+                    const curNode = grid[y][x].nodes[i];
+                    if(curNode.isText_Object) {
+                        if(x+1 !< this.grid.width && x+2 !< this.grid.width) {
+                            for (const node1 of grid[y][x+1].nodes) {
+                                if(node1.isText_Verb) {
+                                    for (const node2 of grid[y][x+2].nodes) {
+                                        if (node2.isText_Quality || node2.isText_Object) {
+                                            this.addRule(curNode.text + " " + node1.text + " " + node2.text)
+                                        }
+                                    }
+                                }
                             }
                         }
-                    }
-                    if(y+1 !< this.grid.height && y+2 !< this.grid.height) {
-                        if (grid[y + 1][x].isText_Verb) {
-                            if (grid[y + 2][x].isText_Quality || grid[y + 2][x].isText_Object) {
-                                this.addRule(curNode.text + " " + grid[y + 1][x].text + " " + grid[y + 2][x].text)
+                        if(y+1 !< this.grid.height && y+2 !< this.grid.height) {
+                            for (const node1 of grid[y+1][x].nodes) {
+                                if(node1.isText_Verb) {
+                                    for (const node2 of grid[y+2][x].nodes) {
+                                        if (node2.isText_Quality || node2.isText_Object) {
+                                            this.addRule(curNode.text + " " + node1.text + " " + node2.text)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -43,16 +53,23 @@ export default class Rules {
         this.rules = Array.from(new Set(this.rules))
 
         this.resetAllNodeRules()
+
+        // go though every rule
         for (const rule of this.rules) {
             const rules = rule.split(" ");
+            // like baba
             const objectName = rules[0];
+            // like you or stop
             const qualityName = rules[2];
 
             let nodesWithObjectName = [];
             for (let y = 0; y < this.grid.height; y++) {
                 for (let x = 0; x < this.grid.width; x++) {
-                    if (grid[y][x].objectNames.some(value => value === objectName)) {
-                        nodesWithObjectName.push(grid[y][x])
+                    for (let i = 0; i < this.grid.grid[y][x].nodes.length; i++) {
+                        const node = this.grid.grid[y][x].nodes[i]
+                        if (node.objectName === objectName) {
+                            nodesWithObjectName.push(node)
+                        }
                     }
                 }
             }
@@ -61,9 +78,9 @@ export default class Rules {
                 if(objectNames.indexOf(qualityName) !== -1) {
                     // this.grid.playerPositions = []
 
-                    this.grid.undoActions.push({node: node, changeTo: node.objectNames, changeOn: this.grid.undoStep+1})
+                    this.grid.undoActions.push({node: node, changeTo: node.objectName, changeOn: this.grid.undoStep+1})
 
-                    this.grid.doAfterMove.push({node: node, newObjectName: [qualityName]})
+                    this.grid.doAfterMove.push({node: node, newObjectName: qualityName })
                 }
                 switch (qualityName) {
                     case "you": {
@@ -93,9 +110,12 @@ export default class Rules {
         const grid = this.grid.grid;
         for (let y = 0; y < this.grid.height; y++) {
             for (let x = 0; x < this.grid.width; x++) {
-                grid[y][x].isPlayer = false;
-                grid[y][x].isPushable = false;
-                grid[y][x].rules = [];
+                for (let i = 0; i < grid[y][x].nodes.length; i++) {
+                    const node = grid[y][x].nodes[i]
+                    node.isPlayer = false;
+                    node.isPushable = false;
+                    node.rules = [];
+                }
             }
         }
     }

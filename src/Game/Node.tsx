@@ -1,6 +1,35 @@
 
+export default class Tile {
+    public x:number;
+    public y:number;
+    private _nodes:Array<Node> = []
 
-export default class Node {
+    get nodes(): Array<Node> {
+        return this._nodes.sort((a,b) => {
+            if(specialObjects.indexOf(a.objectName) !== -1 && specialObjects.indexOf(b.objectName) !== -1) {
+                return 0;
+            }
+            if(specialObjects.indexOf(a.objectName) !== -1) {
+                return 1;
+            }
+            if(specialObjects.indexOf(b.objectName) !== -1) {
+                return -1;
+            }
+            return 0;
+        });
+    }
+
+    set nodes(value: Array<Node>) {
+        this._nodes = value;
+    }
+
+    constructor(x:number, y:number) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+export class Node {
     // Text
     get isText(): boolean {
         return this.text !== "";
@@ -8,7 +37,7 @@ export default class Node {
 
 
     get isPushable(): boolean {
-        if(this.isPlayer || this.isText) return true;
+        if(this.isText) return true;
         return this._isPushable;
     }
 
@@ -33,15 +62,17 @@ export default class Node {
 
     public x: number;
     public y: number;
-    public text: string = "";
+    public text: string;
     public isPlayer: boolean = false;
     private _isPushable: boolean = false;
-    public objectNames: Array<string> = [];
+    public objectName: string;
     public rules: Array<string> = [];
 
-    constructor(x:number,y:number) {
+    constructor(x:number,y:number, text:string = "", objectNames:string = "") {
         this.x = x;
         this.y = y;
+        this.text = text;
+        this.objectName = objectNames
     }
 }
 
