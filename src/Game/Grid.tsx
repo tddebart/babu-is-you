@@ -221,7 +221,7 @@ export default class Grid extends Drawing {
                     this.grid[y][x].nodes.push(new Node(x,y,"", 'babu'))
                 }
                 if((x===7 && y===5)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
+                    this.grid[y][x].nodes.push(new Node(x,y,"", 'belt'))
                     // this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
                 }
 
@@ -260,6 +260,21 @@ export default class Grid extends Drawing {
     }
 
     //#region moving
+
+    doMovement() {
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                for (const node of this.grid[y][x].nodes) {
+                    //TODO: fix this and change it into move because shift does not do this
+                    if(node.is("shift")) {
+                        console.log('shifting')
+                        const xyP = node.directionToXAndY(node.lastDirection())
+                        this.moveNode(node, xyP.xP, -xyP.yP);
+                    }
+                }
+            }
+        }
+    }
 
     canMoveIntoNode(node:Node, xP:number, yP:number) {
         const grid = this.grid;

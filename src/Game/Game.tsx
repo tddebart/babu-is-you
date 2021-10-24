@@ -42,8 +42,7 @@ export default class Game extends Component {
                     pos.skip = false;
                 }
             }
-
-            this.grid.rules.updateRules()
+            // this.grid.rules.updateRules()
             let howManyRulesNotYou = 0;
             for (const rule of this.grid.rules.rules) {
                 if(rule.split(" ")[2] !== "you") {
@@ -60,6 +59,7 @@ export default class Game extends Component {
                 }
                 this.grid.rules.resetAllNodeRules()
             }
+            this.grid.doMovement();
             this.grid.rules.updateRules()
 
             this.canMove = false;

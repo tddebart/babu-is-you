@@ -80,6 +80,22 @@ export class Node {
         return this._lastDirection;
     }
 
+    directionToXAndY(direction: number): {xP:number, yP:number} {
+        if(direction === 0) {
+            return {xP: 0, yP: -1}
+        }
+        if(direction === 1) {
+            return {xP: 1, yP: 0}
+        }
+        if(direction === 2) {
+            return {xP: 0, yP: 1}
+        }
+        if(direction === 3) {
+            return {xP: -1, yP: 0}
+        }
+        return {xP: 0, yP: 0}
+    }
+
     public x: number;
     public y: number;
     public text: string;
@@ -117,10 +133,14 @@ export const objectColors: {[key:string]: {x:number, y:number}} = {
     "text_stop": {x:5,y:1},
     "text_is": {x:0,y:3},
     "babu": {x:0,y:3},
+    "belt": {x:1,y:1},
+    "text_belt": {x:1,y:3},
+    "text_shift": {x:1,y:3},
 }
 
 export const objectsWithDirections = [
-    "skull"
+    "skull",
+    "belt",
 ]
 
 export const objectsWithWalking = [
@@ -133,7 +153,8 @@ export const objectNames = [
     "babu",
     "keke",
     "me",
-    "skull"
+    "skull",
+    "belt",
 ]
 
 export const verbNames = [
@@ -145,4 +166,5 @@ export const qualityNames = [
     "you",
     "push",
     "stop",
+    "shift"
 ]
