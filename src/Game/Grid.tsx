@@ -1,51 +1,150 @@
 import Canvas, {Drawing} from "./Canvas";
-import Tile, {Node, specialObjects} from "./Node";
+import Tile, {Node, objectColors, objectsWithDirections, objectsWithWalking} from "./Node";
 import Rules from "./rules";
 
 class AnimatedImage extends Drawing {
     public currentDirection: number = 0;
+    public lastDirection: number = 1;
+    public extraWalking: number = 3;
+
     public imageName: string;
 
     public drawings: Array<Array<any>> = []
 
     public x: number = 0;
+    public xLastFrame: number = 0;
     public y: number = 0;
+    public yLastFrame: number = 0;
+
     public offset!: { x: number; y: number };
     private readonly resolution: number;
+    private hasWalking: boolean = false;
+    private hasDirections: boolean = false;
+    private paletteData!: ImageData;
 
     constructor(canvas: Canvas, imageName: string, resolution: number) {
         super(canvas, false);
         this.imageName = imageName;
         this.resolution = resolution;
-        this.initializeDrawings();
+        this.initializeDrawings()
     }
 
     initializeDrawings() {
-        for (let j = 0; j < 1; j++) {
+        this.hasDirections = objectsWithDirections.indexOf(this.imageName) !== -1
+        this.hasWalking = objectsWithWalking.indexOf(this.imageName) !== -1
+
+        if(this.hasDirections) {
+            this.currentDirection = 24;
+        }
+        if(this.hasWalking) {
+            this.currentDirection = 27;
+        }
+
+        // Give drawings a proper length to assign to
+        for (let j = 0; j < this.currentDirection+1; j++) {
             this.drawings[j] = [];
             for (let i = 1; i < 4; i++) {
                 this.drawings[j][i] = undefined;
             }
         }
 
-        for (let j = 0; j < 1; j++) {
-            for (let i = 1; i < 4; i++) {
-                let img = new Image(24,24);
-                if(specialObjects.indexOf(this.imageName) !== -1) {
-                    img.src = process.env.PUBLIC_URL+"/img/"+this.imageName + "/" + this.imageName + "_" + j + "_" + i + '.png'
-                } else if (this.imageName.includes('text')) {
-                    img.src = process.env.PUBLIC_URL+"/img/texts/" + this.imageName + "_" + j + "_" + i + '.png'
-                } else {
-                    img.src = process.env.PUBLIC_URL+"/img/" + this.imageName + "_" + j + "_" + i + '.png'
-                }
+        // load the palette of colors
+        let palette = new Image(7,5)
+        palette.src = process.env.PUBLIC_URL+"/img/Palettes/default.png"
+        palette.onload = () => {
+            for (let j = 0; j < this.currentDirection+1; j++) {
+                for (let i = 1; i < 4; i++) {
 
-                this.drawings[0][i] = img
+                    // load image from public folder
+                    let img = new Image(24,24);
+                    if(objectsWithWalking.indexOf(this.imageName) !== -1) {
+                        img.src = process.env.PUBLIC_URL+"/img/"+this.imageName + "/" + this.imageName + "_" + j + "_" + i + '.png'
+                    } else if (this.imageName.includes('text')) {
+                        img.src = process.env.PUBLIC_URL+"/img/texts/" + this.imageName + "_" + j + "_" + i + '.png'
+                    } else {
+                        img.src = process.env.PUBLIC_URL+"/img/objects/" + this.imageName + "_" + j + "_" + i + '.png'
+                    }
+
+                    // get the palette image data
+                    let canvas = document.createElement('canvas');
+                    let ctx = canvas.getContext('2d');
+                    if(ctx !== null) {
+                        ctx.drawImage(palette, 0, 0, palette.width,palette.height)
+                        this.paletteData = ctx.getImageData(0,0, palette.width,palette.height)
+                    }
+
+                    // when image is loaded change it's color to correct color
+                    img.onload = () => {
+                        let canvas = document.createElement('canvas');
+                        let ctx = canvas.getContext('2d');
+                        if(ctx !== null) {
+                            ctx.imageSmoothingEnabled = false
+
+                            // get image data to change
+                            ctx.drawImage(img, 0, 0, this.resolution-2, this.resolution-2)
+                            const imageData = ctx.getImageData(0,0,this.resolution-2, this.resolution-2)
+                            let imgData = imageData.data;
+
+                            // get x and y for index of the palette data. "<< 2" does something * 4 but faster
+                            const x = objectColors[this.imageName].x;
+                            const y = objectColors[this.imageName].y;
+                            const posForColor = (y * 7 + x) << 2;
+
+                            // change the whites of the image to the palette color
+                            for (let i =0; i < imgData.length; i += 4) {
+                                if(imgData[i] === 255) {
+                                    imgData[i] = this.paletteData.data[posForColor]
+                                    imgData[i+1] = this.paletteData.data[posForColor+1]
+                                    imgData[i+2] = this.paletteData.data[posForColor+2];
+                                }
+                            }
+
+                            // change image data to canvas for easy drawing
+                            let canvas2 = document.createElement("canvas")
+                            canvas2.width = imageData.width;
+                            canvas2.height = imageData.height;
+                            let ctx2 = canvas2.getContext("2d")
+                            if(ctx2 !== null) {
+                                ctx2.putImageData(imageData, 0, 0)
+                            }
+
+                            this.drawings[j][i] = canvas2;
+                        }
+                    }
+                }
             }
         }
     }
 
     draw() {
-        this.ctx.drawImage(this.drawings[this.currentDirection][this.currentFrame], this.x*this.resolution+this.offset.x+1,this.y*this.resolution+this.offset.y+1,this.resolution-2,this.resolution-2)
+        // if there is no drawing don't try to draw the image and crash
+        if(this.drawings[this.currentDirection][this.currentFrame] === undefined) return;
+
+        // set the currentDirection for objects that have walking animation
+        if(this.hasWalking) {
+            this.currentDirection = this.lastDirection === 0? 8 : this.lastDirection === 1 ? 0 : this.lastDirection === 2 ? 24 : this.lastDirection === 3 ? 16 : 0;
+            if(this.x !== this.xLastFrame || this.y !== this.yLastFrame) {
+                if(this.extraWalking !== 3) {
+                    this.extraWalking += 1;
+                } else {
+                    this.extraWalking = 0;
+                }
+            }
+            this.currentDirection += this.extraWalking;
+        }
+
+        // set the currentDirection for objects that have more than 1 direction like the skull
+        if(this.hasDirections) {
+            this.currentDirection = this.lastDirection === 0? 8 : this.lastDirection === 1 ? 0 : this.lastDirection === 2 ? 24 : this.lastDirection === 3 ? 16 : 0;
+        }
+
+        // if there is no drawing don't try to draw the image and crash
+        if(this.drawings[this.currentDirection][this.currentFrame] === undefined) return;
+
+        this.ctx.drawImage(this.drawings[this.currentDirection][this.currentFrame], this.x*this.resolution+this.offset.x+1,this.y*this.resolution+this.offset.y+1, this.resolution-2, this.resolution-2);
+
+        this.xLastFrame = this.x;
+        this.yLastFrame = this.y;
     }
 }
 
@@ -72,8 +171,7 @@ export default class Grid extends Drawing {
     public doAfterMove: Array<{node: Node, newObjectName: string}> = []
 
     public undoStep = 0;
-    public undoActionStep = 0;
-    public rules: Rules;
+    public rules: Rules = new Rules(this);
 
     getDrawing(key: string) {
         if(!(key in this.drawings)) {
@@ -87,12 +185,18 @@ export default class Grid extends Drawing {
         this.width = width;
         this.height = height;
         this.resolution = resolution;
+        this.loadAllImages()
         this.setOffset()
         this.initializeGrid(width, height)
-        this.initializeDrawings()
-        this.rules = new Rules(this);
+        this.initializeDrawings();
         this.rules.updateRules()
         this.canvas.canvas.addEventListener('click', this.calculateText.bind(this));
+    }
+
+    loadAllImages() {
+        for (const key of Object.keys(objectColors)) {
+            this.drawings[key] = new AnimatedImage(this.canvas, key, this.resolution)
+        }
     }
 
     setOffset() {
@@ -117,8 +221,8 @@ export default class Grid extends Drawing {
                     this.grid[y][x].nodes.push(new Node(x,y,"", 'babu'))
                 }
                 if((x===7 && y===5)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,"", 'keke'))
                     this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
+                    // this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
                 }
 
                 if((x===3 && y===3)) {
@@ -131,18 +235,11 @@ export default class Grid extends Drawing {
                     this.grid[y][x].nodes.push(new Node(x,y,"you"))
                 }
                 //
-                // if((x===5 && y===1)) {
-                //     this.grid[y][x].text = "keke";
+                // if((x===7 && y===4)) {
+                //     this.grid[y][x].nodes.push(new Node(x,y,"keke"))
                 // }
-                // if((x===6 && y===1  )) {
-                //     this.grid[y][x].text = "is";
-                // }
-                // if((x===7 && y===1)) {
-                //     this.grid[y][x].text = "stop";
-                // }
-
-                // if((x===5 && y===1)) {
-                //     this.grid[y][x].text = "keke";
+                // if((x===7 && y===6)) {
+                //     this.grid[y][x].nodes.push(new Node(x,y,"me"))
                 // }
             }
         }
@@ -169,17 +266,21 @@ export default class Grid extends Drawing {
 
         const x = node.x;
         const y = node.y;
+        // return if coords out of bounds
         if(x+xP < 0 || x+xP > this.width-1 || y+yP < 0 || y+yP > this.height-1) return false;
         for (let i = 0; i < grid[y+yP][x+xP].nodes.length; i++) {
             const nextNode = grid[y+yP][x+xP].nodes[i];
             if(nextNode.isPushable) {
+                // return if coords out of bounds
                 if(nextNode.x+xP < 0 || nextNode.x+xP > this.width-1 || nextNode.y+yP < 0 || nextNode.y+yP > this.height-1) return false;
+
+                // if next tile empty you can move
                 if(grid[nextNode.y+yP][nextNode.x+xP].nodes.length === 0) {
                     this.moveNode(nextNode, xP,yP)
                     return true;
                 }
-                for (const nodeAfterNext of grid[nextNode.y+yP][nextNode.x+xP].nodes) {
-                    if(this.canMoveIntoNode(nodeAfterNext, xP, yP)) {
+                for (let j = 0; j < grid[nextNode.y+yP][nextNode.x+xP].nodes.length; j++) {
+                    if(this.canMoveIntoNode(nextNode, xP, yP)) {
                         this.moveNode(nextNode, xP,yP)
                         return true;
                     }
@@ -192,7 +293,7 @@ export default class Grid extends Drawing {
         return true;
     }
 
-    moveNode(node: Node, xP:number, yP:number, skipMoveCheck:boolean = false, skipAddUndoCheck:boolean = false): boolean {
+    moveNode(node: Node, xP:number, yP:number, skipMoveCheck:boolean = false, skipAddUndoCheck:boolean = false, reverseDirection:boolean = false): boolean {
 
         if(!skipMoveCheck && !this.canMoveIntoNode(node, xP, yP)) {
             return false;
@@ -203,6 +304,15 @@ export default class Grid extends Drawing {
 
         node.x += xP;
         node.y += yP;
+
+        if(reverseDirection) {
+            node.xP = -xP
+            node.yP = -yP;
+        } else {
+            node.xP = xP
+            node.yP = yP;
+        }
+
         nextTile.nodes.push(node);
         curTile.nodes.splice(curTile.nodes.indexOf(node), 1);
 
@@ -211,7 +321,7 @@ export default class Grid extends Drawing {
             if(this.undoMoves.length-1 !== this.undoStep) {
                 this.undoMoves.push([]);
             }
-            this.undoMoves[this.undoStep].push({node:nextTile.nodes[nextTile.nodes.length-1], xP: xP !==0 ? -xP : 0,yP: yP !==0 ? -yP : 0, doAction:false});
+            this.undoMoves[this.undoStep].push({node:nextTile.nodes[nextTile.nodes.findIndex(value => value === node)], xP: xP !==0 ? -xP : 0,yP: yP !==0 ? -yP : 0, doAction:false});
         }
         return true;
     }
@@ -234,6 +344,7 @@ export default class Grid extends Drawing {
                         const drawing = this.getDrawing(node.objectName);
                         drawing.x = x;
                         drawing.y = y;
+                        drawing.lastDirection = node.lastDirection();
                         drawing.offset = this.offset;
                         drawing.draw()
                     }
@@ -247,7 +358,6 @@ export default class Grid extends Drawing {
                 }
             }
         }
-        // this.ctx.imageSmoothingEnabled = true
     }
 
     drawGrid() {

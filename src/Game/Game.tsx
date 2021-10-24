@@ -80,7 +80,7 @@ export default class Game extends Component {
         const undoMoves = this.grid.undoMoves[this.grid.undoStep-1].slice()
         for (let i = undoMoves.length-1; i >= 0; i--) {
             const undoMove = undoMoves[i]
-            this.grid.moveNode(undoMove.node, undoMove.xP, undoMove.yP,false,true)
+            this.grid.moveNode(undoMove.node, undoMove.xP, undoMove.yP,false,true, true)
             for (const undoAction of this.grid.undoActions) {
                 if(undoAction.changeOn === this.grid.undoStep) {
                     undoAction.node.objectName = undoAction.changeTo;
