@@ -2,6 +2,7 @@ import React, {Component} from "react";
 import "./Game.css"
 import Canvas from "./Canvas";
 import Grid from "./Grid";
+import gitLogo from "../GitHub-Mark-64px.png";
 
 export default class Game extends Component {
     private canvas!: Canvas | null;
@@ -129,6 +130,9 @@ export default class Game extends Component {
     render() {
         return(
             <>
+                <a href="https://github.com/tddebart/babu-is-you" target="_blank" rel="noreferrer">
+                    <img className={"github"} src={gitLogo} alt={"github"} />
+                </a>
                 <button style={{position: "absolute", top: "10px"}} onClick={() => console.log(this.grid)}>Grid</button>
                 <div id={"rules-text"} style={{position: "absolute", top: "10px", left: "10px", textAlign: "left"}}/>
                 <Canvas ref={el => this.canvas = el}/>

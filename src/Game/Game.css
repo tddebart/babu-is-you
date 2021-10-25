@@ -3,3 +3,10 @@ canvas {
     height: 100%;
     image-rendering: pixelated;
 }
+.github {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    width:50px;
+    height:50px;
+}
