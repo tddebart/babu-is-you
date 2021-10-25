@@ -223,7 +223,7 @@ export default class Grid extends Drawing {
                     this.grid[y][x].nodes.push(new Node(x,y,"", 'babu'))
                 }
                 if((x===7 && y===5)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,"", 'belt'))
+                    this.grid[y][x].nodes.push(new Node(x,y,"", 'keke'))
                     // this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
                 }
 
@@ -251,7 +251,7 @@ export default class Grid extends Drawing {
         const posX = e.clientX - this.offset.x;
         const posY = e.clientY - this.offset.y;
         const gridPos = {x: Math.floor(posX/this.resolution), y: Math.floor(posY/this.resolution)}
-        if(gridPos.x < 0 || gridPos.x > this.width || gridPos.y < 0 || gridPos.y > this.height) {
+        if(gridPos.x < 0 || gridPos.x >= this.width || gridPos.y < 0 || gridPos.y >= this.height) {
             return;
         }
         const text = prompt("Give a text value.")
@@ -274,6 +274,14 @@ export default class Grid extends Drawing {
                             xyP = {xP:-xyP.xP, yP:-xyP.yP}
                         }
                         movedNodes.push({node:node, xP:xyP.xP, yP:xyP.yP})
+                    }
+                    if(node.is("defeat")) {
+                        if(this.grid[y][x].nodes.some(value => value.isPlayer)) {
+                            for (const playerNode of this.grid[y][x].nodes.filter(value => value.isPlayer)) {
+                                this.undoActions.push({node: playerNode, changeTo: playerNode.objectName, changeOn: this.undoStep+1})
+                                playerNode.objectName = "";
+                            }
+                        }
                     }
                 }
             }
