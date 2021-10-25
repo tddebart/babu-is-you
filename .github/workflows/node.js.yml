@@ -20,27 +20,25 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+    - name: CheckoutRepository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js ${{ matrix.node-version }} with yarn
+      uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - name: SetupGit
+        cache: 'yarn'
+
+    - run: yarn install
+
+    - name: Deploy
       run: |
-        git config --global user.name $user_name
-        git config --global user.email $user_email
+        git config --global user.name "tddebart"
+        git config --global user.email "tddebart@gmail.com""
         git remote set-url origin https://${github_token}@github.com/${repository}
+        yarn deploy
       env:
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         github_token: ${{ secrets.ACTIONS_DEPLOY_ACCESS_TOKEN }}
         repository: ${{ github.repository }}
-
-
-    - uses: borales/actions-yarn@v2.3.0
-      with: 
-        cmd: install # will run `yarn install` command
-    - uses: borales/actions-yarn@v2.3.0
-      with: 
-        cmd: deploy # will run `yarn deploy` command    
