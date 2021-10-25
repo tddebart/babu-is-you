@@ -42,6 +42,7 @@ export default class Game extends Component {
                     pos.skip = false;
                 }
             }
+            this.grid.doMovement();
             // this.grid.rules.updateRules()
             let howManyRulesNotYou = 0;
             for (const rule of this.grid.rules.rules) {
@@ -49,8 +50,10 @@ export default class Game extends Component {
                     howManyRulesNotYou++;
                 }
             }
-            if(doExtra !== this.grid.playerPositions.length || howManyRulesNotYou === this.grid.rules.rules.length) {
+
+            if(doExtra !== this.grid.playerPositions.length || howManyRulesNotYou === this.grid.rules.rules.length || this.grid.didMoveThisStep) {
                 this.grid.undoStep++
+                this.grid.didMoveThisStep = false;
             }
 
             if(this.grid.doAfterMove.length !== 0) {
@@ -59,7 +62,6 @@ export default class Game extends Component {
                 }
                 this.grid.rules.resetAllNodeRules()
             }
-            this.grid.doMovement();
             this.grid.rules.updateRules()
 
             this.canMove = false;

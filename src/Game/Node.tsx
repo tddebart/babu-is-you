@@ -136,6 +136,7 @@ export const objectColors: {[key:string]: {x:number, y:number}} = {
     "belt": {x:1,y:1},
     "text_belt": {x:1,y:3},
     "text_shift": {x:1,y:3},
+    "text_move": {x:5,y:3},
 }
 
 export const objectsWithDirections = [
@@ -166,5 +167,6 @@ export const qualityNames = [
     "you",
     "push",
     "stop",
-    "shift"
+    "shift",
+    "move",
 ]

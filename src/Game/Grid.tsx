@@ -173,6 +173,8 @@ export default class Grid extends Drawing {
     public undoStep = 0;
     public rules: Rules = new Rules(this);
 
+    public didMoveThisStep: boolean = false;
+
     getDrawing(key: string) {
         if(!(key in this.drawings)) {
             this.drawings[key] = new AnimatedImage(this.canvas, key, this.resolution);
@@ -262,17 +264,23 @@ export default class Grid extends Drawing {
     //#region moving
 
     doMovement() {
+        let movedNodes = []
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 for (const node of this.grid[y][x].nodes) {
-                    //TODO: fix this and change it into move because shift does not do this
-                    if(node.is("shift")) {
-                        console.log('shifting')
-                        const xyP = node.directionToXAndY(node.lastDirection())
-                        this.moveNode(node, xyP.xP, -xyP.yP);
+                    if(node.is("move")) {
+                        let xyP = node.directionToXAndY(node.lastDirection())
+                        if(!this.canMoveIntoNode(node, xyP.xP, xyP.yP)) {
+                            xyP = {xP:-xyP.xP, yP:-xyP.yP}
+                        }
+                        movedNodes.push({node:node, xP:xyP.xP, yP:xyP.yP})
                     }
                 }
             }
+        }
+
+        for (const movedNode of movedNodes) {
+            this.moveNode(movedNode.node, movedNode.xP, movedNode.yP)
         }
     }
 
@@ -333,10 +341,11 @@ export default class Grid extends Drawing {
 
         // Undo moves
         if(!skipAddUndoCheck) {
+            this.didMoveThisStep = true;
             if(this.undoMoves.length-1 !== this.undoStep) {
                 this.undoMoves.push([]);
             }
-            this.undoMoves[this.undoStep].push({node:nextTile.nodes[nextTile.nodes.findIndex(value => value === node)], xP: xP !==0 ? -xP : 0,yP: yP !==0 ? -yP : 0, doAction:false});
+            this.undoMoves[this.undoStep].push({node:nextTile.nodes[nextTile.nodes.findIndex(value => value === node)], xP: -xP,yP: -yP, doAction:false});
         }
         return true;
     }
