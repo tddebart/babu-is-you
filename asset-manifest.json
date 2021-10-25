@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.css": "/babu-is-you/static/css/main.06fc003e.chunk.css",
-    "main.js": "/babu-is-you/static/js/main.4e87e926.chunk.js",
-    "main.js.map": "/babu-is-you/static/js/main.4e87e926.chunk.js.map",
+    "main.css": "/babu-is-you/static/css/main.04b8f31d.chunk.css",
+    "main.js": "/babu-is-you/static/js/main.c8b2af2d.chunk.js",
+    "main.js.map": "/babu-is-you/static/js/main.c8b2af2d.chunk.js.map",
     "runtime-main.js": "/babu-is-you/static/js/runtime-main.f0088065.js",
     "runtime-main.js.map": "/babu-is-you/static/js/runtime-main.f0088065.js.map",
     "static/js/2.b22a4ff1.chunk.js": "/babu-is-you/static/js/2.b22a4ff1.chunk.js",
@@ -10,13 +10,13 @@
     "static/js/3.4ca6e7df.chunk.js": "/babu-is-you/static/js/3.4ca6e7df.chunk.js",
     "static/js/3.4ca6e7df.chunk.js.map": "/babu-is-you/static/js/3.4ca6e7df.chunk.js.map",
     "index.html": "/babu-is-you/index.html",
-    "static/css/main.06fc003e.chunk.css.map": "/babu-is-you/static/css/main.06fc003e.chunk.css.map",
+    "static/css/main.04b8f31d.chunk.css.map": "/babu-is-you/static/css/main.04b8f31d.chunk.css.map",
     "static/js/2.b22a4ff1.chunk.js.LICENSE.txt": "/babu-is-you/static/js/2.b22a4ff1.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.f0088065.js",
     "static/js/2.b22a4ff1.chunk.js",
-    "static/css/main.06fc003e.chunk.css",
-    "static/js/main.4e87e926.chunk.js"
+    "static/css/main.04b8f31d.chunk.css",
+    "static/js/main.c8b2af2d.chunk.js"
   ]
 }
