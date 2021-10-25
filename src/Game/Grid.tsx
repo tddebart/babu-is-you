@@ -120,6 +120,14 @@ class AnimatedImage extends Drawing {
         // if there is no drawing don't try to draw the image and crash
         if(this.drawings[this.currentDirection][this.currentFrame] === undefined) return;
 
+        if(this.imageName === "keke") {
+            console.log('keke')
+        }
+
+        // set the currentDirection for objects that have more than 1 direction like the skull
+        if(this.hasDirections) {
+            this.currentDirection = this.lastDirection === 0? 8 : this.lastDirection === 1 ? 0 : this.lastDirection === 2 ? 24 : this.lastDirection === 3 ? 16 : 0;
+        }
         // set the currentDirection for objects that have walking animation
         if(this.hasWalking) {
             this.currentDirection = this.lastDirection === 0? 8 : this.lastDirection === 1 ? 0 : this.lastDirection === 2 ? 24 : this.lastDirection === 3 ? 16 : 0;
@@ -133,10 +141,6 @@ class AnimatedImage extends Drawing {
             this.currentDirection += this.extraWalking;
         }
 
-        // set the currentDirection for objects that have more than 1 direction like the skull
-        if(this.hasDirections) {
-            this.currentDirection = this.lastDirection === 0? 8 : this.lastDirection === 1 ? 0 : this.lastDirection === 2 ? 24 : this.lastDirection === 3 ? 16 : 0;
-        }
 
         // if there is no drawing don't try to draw the image and crash
         if(this.drawings[this.currentDirection][this.currentFrame] === undefined) return;
@@ -223,7 +227,7 @@ export default class Grid extends Drawing {
                     this.grid[y][x].nodes.push(new Node(x,y,"", 'babu'))
                 }
                 if((x===7 && y===5)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,"", 'keke'))
+                    this.grid[y][x].nodes.push(new Node(x,y,"", 'wall'));
                     // this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
                 }
 

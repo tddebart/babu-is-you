@@ -138,6 +138,8 @@ export const objectColors: {[key:string]: {x:number, y:number}} = {
     "text_shift": {x:1,y:3},
     "text_move": {x:5,y:3},
     "text_defeat": {x:2,y:1},
+    "wall": {x:1,y:1},
+    "text_wall": {x:0,y:1},
 }
 
 export const objectsWithDirections = [
@@ -157,6 +159,7 @@ export const objectNames = [
     "me",
     "skull",
     "belt",
+    "wall"
 ]
 
 export const verbNames = [

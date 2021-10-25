@@ -8,6 +8,7 @@ export default class Game extends Component {
     private grid!:Grid;
     private canMove: boolean = true;
     private justUndone: boolean = false;
+    private interval!: any;
 
     constructor(props: any) {
         super(props);
@@ -19,6 +20,7 @@ export default class Game extends Component {
             this.grid = new Grid(this.canvas, 10, 10, 70);
             window.addEventListener("resize", this.grid.setOffset.bind(this.grid))
             window.addEventListener('keydown',this.keyDetectDown.bind(this),false);
+            window.addEventListener('keyup',this.keyDetectUp.bind(this),false);
         }
     }
 
@@ -43,7 +45,7 @@ export default class Game extends Component {
                 }
             }
             this.grid.doMovement();
-            // this.grid.rules.updateRules()
+            this.grid.rules.updateRules()
             let howManyRulesNotYou = 0;
             for (const rule of this.grid.rules.rules) {
                 if(rule.split(" ")[2] !== "you") {
@@ -97,19 +99,31 @@ export default class Game extends Component {
     }
     
     keyDetectDown(e: KeyboardEvent) {
+        if(e.repeat) return;
+        if(this.interval !== undefined) return;
         if(e.key === "w") {
             this.movePlayers(0,-1)
+            this.interval = setInterval(() => this.movePlayers(0,-1), 150)
         }
         else if(e.key === "a") {
             this.movePlayers(-1,0)
+            this.interval = setInterval(() => this.movePlayers(-1,0), 150)
         } else if(e.key === "s") {
             this.movePlayers(0,1)
+            this.interval = setInterval(() => this.movePlayers(0,1), 150)
         } else if(e.key === "d") {
             this.movePlayers(1,0)
+            this.interval = setInterval(() => this.movePlayers(1,0), 150)
         }
         else if(e.key === "z") {
             this.undoMoves();
+            this.interval = setInterval(() => this.undoMoves(), 200)
         }
+    }
+    keyDetectUp(e: KeyboardEvent) {
+        if(e.repeat) return;
+        clearInterval(this.interval)
+        this.interval = undefined
     }
 
     render() {
