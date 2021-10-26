@@ -1,5 +1,5 @@
 import Canvas, {Drawing} from "./Canvas";
-import Tile, {Node, objectColors, objectsWithDirections, objectsWithWalking} from "./Node";
+import Tile, {Node, Objects} from "./Node";
 import Rules from "./rules";
 
 class AnimatedImage extends Drawing {
@@ -21,6 +21,7 @@ class AnimatedImage extends Drawing {
     private hasWalking: boolean = false;
     private hasDirections: boolean = false;
     private paletteData!: ImageData;
+    public grid!: Grid;
 
     constructor(canvas: Canvas, imageName: string, resolution: number) {
         super(canvas, false);
@@ -30,14 +31,17 @@ class AnimatedImage extends Drawing {
     }
 
     initializeDrawings() {
-        this.hasDirections = objectsWithDirections.indexOf(this.imageName) !== -1
-        this.hasWalking = objectsWithWalking.indexOf(this.imageName) !== -1
+        this.hasDirections = Objects[this.imageName].hasDirs
+        this.hasWalking = Objects[this.imageName].hasWalkAni
 
         if(this.hasDirections) {
             this.currentDirection = 24;
         }
         if(this.hasWalking) {
             this.currentDirection = 27;
+        }
+        if(Objects[this.imageName].isTileable) {
+            this.currentDirection = 15;
         }
 
         // Give drawings a proper length to assign to
@@ -57,7 +61,7 @@ class AnimatedImage extends Drawing {
 
                     // load image from public folder
                     let img = new Image(24,24);
-                    if(objectsWithWalking.indexOf(this.imageName) !== -1) {
+                    if(this.hasWalking) {
                         img.src = process.env.PUBLIC_URL+"/img/"+this.imageName + "/" + this.imageName + "_" + j + "_" + i + '.png'
                     } else if (this.imageName.includes('text')) {
                         img.src = process.env.PUBLIC_URL+"/img/texts/" + this.imageName + "_" + j + "_" + i + '.png'
@@ -86,8 +90,8 @@ class AnimatedImage extends Drawing {
                             let imgData = imageData.data;
 
                             // get x and y for index of the palette data. "<< 2" does something * 4 but faster
-                            const x = objectColors[this.imageName].x;
-                            const y = objectColors[this.imageName].y;
+                            const x = Objects[this.imageName].x;
+                            const y = Objects[this.imageName].y;
                             const posForColor = (y * 7 + x) << 2;
 
                             // change the whites of the image to the palette color
@@ -118,11 +122,9 @@ class AnimatedImage extends Drawing {
 
     draw() {
         // if there is no drawing don't try to draw the image and crash
-        if(this.drawings[this.currentDirection][this.currentFrame] === undefined) return;
+        if(this.drawings[this.currentDirection][this.currentFrame] === undefined || this.grid === undefined) return;
 
-        if(this.imageName === "keke") {
-            console.log('keke')
-        }
+        this.currentDirection = 0;
 
         // set the currentDirection for objects that have more than 1 direction like the skull
         if(this.hasDirections) {
@@ -141,11 +143,98 @@ class AnimatedImage extends Drawing {
             this.currentDirection += this.extraWalking;
         }
 
+        //#region tile sides
 
+        // Tile system
+        if(Objects[this.imageName].isTileable) {
+            let hasLeft = false;
+            let hasRight = false;
+            let hasTop = false;
+            let hasBottom = false;
+
+
+            if(!(this.x+1 > this.grid.width-1) && this.grid.grid[this.y][this.x+1].nodes.some(value => value.objectName === this.imageName)) {
+                hasRight = true;
+            }
+            if(!(this.x-1 < 0) && this.grid.grid[this.y][this.x-1].nodes.some(value => value.objectName === this.imageName)) {
+                hasLeft = true;
+            }
+            if(!(this.y+1 > this.grid.height-1) && this.grid.grid[this.y+1][this.x].nodes.some(value => value.objectName === this.imageName)) {
+                hasBottom = true;
+            }
+            if(!(this.y-1 < 0) && this.grid.grid[this.y-1][this.x].nodes.some(value => value.objectName === this.imageName)) {
+                hasTop = true;
+            }
+
+            // Right
+            if(!hasLeft && hasRight && !hasTop && !hasBottom) {
+                this.currentDirection += 1;
+            }
+            //Top
+            else if(!hasLeft && !hasRight && hasTop && !hasBottom) {
+                this.currentDirection += 2;
+            }
+            // Top and right
+            else if(!hasLeft && hasRight && hasTop && !hasBottom) {
+                this.currentDirection += 3;
+            }
+            // Left side
+            else if(hasLeft && !hasRight && !hasTop && !hasBottom) {
+                this.currentDirection += 4;
+            }
+            // Left and right
+            else if(hasLeft && hasRight && !hasTop && !hasBottom) {
+                this.currentDirection += 5;
+            }
+            // Left and top
+            else if(hasLeft && !hasRight && hasTop && !hasBottom) {
+                this.currentDirection += 6;
+            }
+            // Left, top and right
+            else if(hasLeft && hasRight && hasTop && !hasBottom) {
+                this.currentDirection += 7;
+            }
+            // Bottom
+            else if(!hasLeft && !hasRight && !hasTop && hasBottom) {
+                this.currentDirection += 8;
+            }
+            // Bottom and right
+            else if(!hasLeft && hasRight && !hasTop && hasBottom) {
+                this.currentDirection += 9;
+            }
+            // Top and bottom
+            else if(!hasLeft && !hasRight && hasTop && hasBottom) {
+                this.currentDirection += 10;
+            }
+            // Top, bottom and right
+            else if(!hasLeft && hasRight && hasTop && hasBottom) {
+                this.currentDirection += 11;
+            }
+            // Bottom and left
+            else if(hasLeft && !hasRight && !hasTop && hasBottom) {
+                this.currentDirection += 12;
+            }
+            // Left, bottom and right
+            else if(hasLeft && hasRight && !hasTop && hasBottom) {
+                this.currentDirection += 13;
+            }
+            // Top, bottom and left
+            else if(hasLeft && !hasRight && hasTop && hasBottom) {
+                this.currentDirection += 14;
+            }
+            // All sides
+            else if(hasLeft && hasRight && hasTop && hasBottom) {
+                this.currentDirection += 15;
+            }
+        }
+
+        //#endregion
+
+        this.ctx.imageSmoothingEnabled = false
         // if there is no drawing don't try to draw the image and crash
         if(this.drawings[this.currentDirection][this.currentFrame] === undefined) return;
 
-        this.ctx.drawImage(this.drawings[this.currentDirection][this.currentFrame], this.x*this.resolution+this.offset.x+1,this.y*this.resolution+this.offset.y+1, this.resolution-2, this.resolution-2);
+        this.ctx.drawImage(this.drawings[this.currentDirection][this.currentFrame], this.x*this.resolution+this.offset.x,this.y*this.resolution+this.offset.y, this.resolution, this.resolution);
 
         this.xLastFrame = this.x;
         this.yLastFrame = this.y;
@@ -200,13 +289,13 @@ export default class Grid extends Drawing {
     }
 
     loadAllImages() {
-        for (const key of Object.keys(objectColors)) {
+        for (const key of Object.keys(Objects)) {
             this.drawings[key] = new AnimatedImage(this.canvas, key, this.resolution)
         }
     }
 
     setOffset() {
-        this.offset = {x:window.innerWidth/2-(this.width/2*this.resolution), y:window.innerHeight/2-(this.height/2*this.resolution)}
+        this.offset = {x:Math.floor(window.innerWidth/2-(this.width/2*this.resolution)), y:Math.floor(window.innerHeight/2-(this.height/2*this.resolution))}
     }
 
     initializeDrawings() {
@@ -227,7 +316,7 @@ export default class Grid extends Drawing {
                     this.grid[y][x].nodes.push(new Node(x,y,"", 'babu'))
                 }
                 if((x===7 && y===5)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,"", 'wall'));
+                    this.grid[y][x].nodes.push(new Node(x,y,"", 'keke'));
                     // this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
                 }
 
@@ -380,6 +469,7 @@ export default class Grid extends Drawing {
                         const drawing = this.getDrawing(node.objectName);
                         drawing.x = x;
                         drawing.y = y;
+                        drawing.grid = this;
                         drawing.lastDirection = node.lastDirection();
                         drawing.offset = this.offset;
                         drawing.draw()
@@ -388,6 +478,7 @@ export default class Grid extends Drawing {
                         const drawing = this.getDrawing("text_"+node.text);
                         drawing.x = x;
                         drawing.y = y;
+                        drawing.grid = this;
                         drawing.offset = this.offset;
                         drawing.draw()
                     }

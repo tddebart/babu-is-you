@@ -60,7 +60,7 @@ export default class Canvas extends Component {
 
         this.frameTime+=(1/(this.FRAMES_PER_SECOND))
         let advanceFrame = false;
-        if((this.frameTime % 1) > 0.25){
+        if((this.frameTime % 1) > 0.200){
             this.frameTime = 0;
             advanceFrame = true;
         }

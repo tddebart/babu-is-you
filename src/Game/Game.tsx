@@ -22,6 +22,15 @@ export default class Game extends Component {
             window.addEventListener("resize", this.grid.setOffset.bind(this.grid))
             window.addEventListener('keydown',this.keyDetectDown.bind(this),false);
             window.addEventListener('keyup',this.keyDetectUp.bind(this),false);
+
+            // Detect loading with this
+
+            // window.addEventListener('DOMContentLoaded', function() {
+            //     console.log("started loading")
+            // })
+            // window.addEventListener(`load`, () => {
+            //     console.log('i have loaded')
+            // })
         }
     }
 
@@ -127,7 +136,10 @@ export default class Game extends Component {
         this.interval = undefined
     }
 
+
+
     render() {
+
         return(
             <>
                 <a href="https://github.com/tddebart/babu-is-you" target="_blank" rel="noreferrer">

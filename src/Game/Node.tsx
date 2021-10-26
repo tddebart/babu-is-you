@@ -6,13 +6,11 @@ export default class Tile {
 
     get nodes(): Array<Node> {
         return this._nodes.sort((a,b) => {
-            if(objectsWithWalking.indexOf(a.objectName) !== -1 && objectsWithWalking.indexOf(b.objectName) !== -1) {
-                return 0;
-            }
-            if(objectsWithWalking.indexOf(a.objectName) !== -1) {
+
+            if(a.zIndex > b.zIndex) {
                 return 1;
             }
-            if(objectsWithWalking.indexOf(b.objectName) !== -1) {
+            if(a.zIndex < b.zIndex) {
                 return -1;
             }
             return 0;
@@ -33,6 +31,14 @@ export class Node {
     // Text
     get isText(): boolean {
         return this.text !== "";
+    }
+
+    get zIndex(): number {
+        if(this.objectName === "") {
+            return Objects["text_"+this.text].zIndex
+        } else {
+            return Objects[this.objectName].zIndex
+        }
     }
 
 
@@ -113,45 +119,34 @@ export class Node {
         this.y = y;
         this.text = text;
         this.objectName = objectName
-        if(startDirection === 1 && objectsWithDirections.indexOf(objectName) !== -1) {
-            this._lastDirection = 2;
+        if(startDirection === 1 && objectName === "" ? false : Objects[objectName].hasDirs) {
+            this._lastDirection = 2
         } else {
             this._lastDirection = startDirection;
         }
     }
 }
 
-export const objectColors: {[key:string]: {x:number, y:number}} = {
-    "keke": {x:2,y:2},
-    "text_keke": {x:2,y:2},
-    "me": {x:3,y:1},
-    "text_me": {x:3,y:1},
-    "text_babu": {x:4,y:1},
-    "text_you": {x:4,y:1},
-    "skull": {x:2,y:1},
-    "text_push": {x:6,y:1},
-    "text_stop": {x:5,y:1},
-    "text_is": {x:0,y:3},
-    "babu": {x:0,y:3},
-    "belt": {x:1,y:1},
-    "text_belt": {x:1,y:3},
-    "text_shift": {x:1,y:3},
-    "text_move": {x:5,y:3},
-    "text_defeat": {x:2,y:1},
-    "wall": {x:1,y:1},
-    "text_wall": {x:0,y:1},
+export const Objects: {[key:string]: {x:number, y:number, zIndex:number, hasWalkAni: boolean, hasDirs: boolean, isTileable: boolean}} = {
+    "babu":         {x:0,y:3, zIndex:24, hasWalkAni: true, hasDirs: false, isTileable: false},
+    "text_babu":    {x:4,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "keke":         {x:2,y:2, zIndex:24, hasWalkAni: true, hasDirs: false, isTileable: false},
+    "text_keke":    {x:2,y:2, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "me":           {x:3,y:1, zIndex:24, hasWalkAni: true, hasDirs: false, isTileable: false},
+    "text_me":      {x:3,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "text_you":     {x:4,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "skull":        {x:2,y:1, zIndex:21, hasWalkAni: false, hasDirs: true, isTileable: false},
+    "text_push":    {x:6,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "text_stop":    {x:5,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "text_is":      {x:0,y:3, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "belt":         {x:1,y:1, zIndex:24, hasWalkAni: false, hasDirs: true, isTileable: false},
+    "text_belt":    {x:1,y:3, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "text_shift":   {x:1,y:3, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "text_move":    {x:5,y:3, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "text_defeat":  {x:2,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "wall":         {x:1,y:1, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: true},
+    "text_wall":    {x:0,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
 }
-
-export const objectsWithDirections = [
-    "skull",
-    "belt",
-]
-
-export const objectsWithWalking = [
-    "babu",
-    "keke",
-    "me",
-]
 
 export const objectNames = [
     "babu",
