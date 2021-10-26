@@ -7,11 +7,11 @@ https://tddebart.github.io/babu-is-you
 # TODO
 ## Bugs
 
-- if babu becomes keke, keke's walking frame will update really fast~~~~
+- if babu becomes keke, keke's walking frame will update really fast
 
 ## First 7 levels
 - [x] wall tiles
-- [ ] smooth transitions when moving
+- [x] smooth transitions when moving
 - [ ] import grass and flag
 - [ ] make is sink and water
 - [ ] make is melt and is hot and lava

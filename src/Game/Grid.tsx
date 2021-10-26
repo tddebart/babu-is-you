@@ -13,8 +13,13 @@ class AnimatedImage extends Drawing {
 
     public x: number = 0;
     public xLastFrame: number = 0;
+    public drawX: number = 0;
+    private xDir: number = 0;
+
     public y: number = 0;
     public yLastFrame: number = 0;
+    public drawY: number = 0;
+    private yDir: number = 0;
 
     public offset!: { x: number; y: number };
     private readonly resolution: number;
@@ -114,6 +119,8 @@ class AnimatedImage extends Drawing {
 
                             this.drawings[j][i] = canvas2;
                         }
+                        this.drawX = this.x;
+                        this.drawY = this.y;
                     }
                 }
             }
@@ -124,6 +131,7 @@ class AnimatedImage extends Drawing {
         // if there is no drawing don't try to draw the image and crash
         if(this.drawings[this.currentDirection][this.currentFrame] === undefined || this.grid === undefined) return;
 
+        // Reset the direction
         this.currentDirection = 0;
 
         // set the currentDirection for objects that have more than 1 direction like the skull
@@ -141,6 +149,12 @@ class AnimatedImage extends Drawing {
                 }
             }
             this.currentDirection += this.extraWalking;
+        }
+        if(this.x !== this.xLastFrame || this.y !== this.yLastFrame) {
+            this.xDir = this.x - this.xLastFrame
+            this.yDir = this.y - this.yLastFrame
+            this.drawX = this.x-this.xDir
+            this.drawY = this.y-this.yDir;
         }
 
         //#region tile sides
@@ -234,7 +248,12 @@ class AnimatedImage extends Drawing {
         // if there is no drawing don't try to draw the image and crash
         if(this.drawings[this.currentDirection][this.currentFrame] === undefined) return;
 
-        this.ctx.drawImage(this.drawings[this.currentDirection][this.currentFrame], this.x*this.resolution+this.offset.x,this.y*this.resolution+this.offset.y, this.resolution, this.resolution);
+        this.ctx.drawImage(this.drawings[this.currentDirection][this.currentFrame], this.drawX*this.resolution+this.offset.x,this.drawY*this.resolution+this.offset.y, this.resolution, this.resolution);
+
+        if(parseFloat(this.drawX.toFixed(1)) !== this.x || parseFloat(this.drawY.toFixed(1)) !== this.y) {
+            this.drawX+= 0.2*this.xDir
+            this.drawY+= 0.2*this.yDir;
+        }
 
         this.xLastFrame = this.x;
         this.yLastFrame = this.y;
@@ -497,6 +516,10 @@ export default class Grid extends Drawing {
         canvas.height = height*resolution
         const ctx = canvas.getContext('2d');
         if(ctx) {
+            ctx.imageSmoothingEnabled = false
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = 'rgba(0,0,0,1)'
+            ctx.fillStyle = "rgba(0,0,0,1)";
             ctx.beginPath();
             for (let x = 0; x < width; x++) {
                 ctx.moveTo(x*resolution, 0);
