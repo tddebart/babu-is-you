@@ -167,16 +167,16 @@ class AnimatedImage extends Drawing {
             let hasBottom = false;
 
 
-            if(!(this.x+1 > this.grid.width-1) && this.grid.grid[this.y][this.x+1].nodes.some(value => value.objectName === this.imageName)) {
+            if(!(this.drawX+1 > this.grid.width-1) && this.grid.grid[this.y][this.drawX+1].nodes.some(value => value.objectName === this.imageName)) {
                 hasRight = true;
             }
-            if(!(this.x-1 < 0) && this.grid.grid[this.y][this.x-1].nodes.some(value => value.objectName === this.imageName)) {
+            if(!(this.drawX-1 < 0) && this.grid.grid[this.y][this.drawX-1].nodes.some(value => value.objectName === this.imageName)) {
                 hasLeft = true;
             }
-            if(!(this.y+1 > this.grid.height-1) && this.grid.grid[this.y+1][this.x].nodes.some(value => value.objectName === this.imageName)) {
+            if(!(this.drawY+1 > this.grid.height-1) && this.grid.grid[this.drawY+1][this.x].nodes.some(value => value.objectName === this.imageName)) {
                 hasBottom = true;
             }
-            if(!(this.y-1 < 0) && this.grid.grid[this.y-1][this.x].nodes.some(value => value.objectName === this.imageName)) {
+            if(!(this.drawY-1 < 0) && this.grid.grid[this.drawY-1][this.x].nodes.some(value => value.objectName === this.imageName)) {
                 hasTop = true;
             }
 
@@ -335,8 +335,11 @@ export default class Grid extends Drawing {
                     this.grid[y][x].nodes.push(new Node(x,y,"", 'babu'))
                 }
                 if((x===7 && y===5)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,"", 'keke'));
+                    this.grid[y][x].nodes.push(new Node(x,y,"", 'grass'));
                     // this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
+                }
+                if((x===8 && y===5)) {
+                    this.grid[y][x].nodes.push(new Node(x,y,"", 'grass'));
                 }
 
                 if((x===3 && y===3)) {
@@ -366,9 +369,13 @@ export default class Grid extends Drawing {
         if(gridPos.x < 0 || gridPos.x >= this.width || gridPos.y < 0 || gridPos.y >= this.height) {
             return;
         }
-        const text = prompt("Give a text value.")
+        const text = prompt("Give a value.")
         if(text !== null) {
-            this.grid[gridPos.y][gridPos.x].nodes.push(new Node(gridPos.x,gridPos.y,text))
+            // if(objectNames.indexOf(text) !== -1) {
+            //     this.grid[gridPos.y][gridPos.x].nodes.push(new Node(gridPos.x,gridPos.y,"", text))
+            // } else {
+                this.grid[gridPos.y][gridPos.x].nodes.push(new Node(gridPos.x,gridPos.y,text))
+            // }
         }
         this.rules.updateRules();
     }
@@ -485,6 +492,8 @@ export default class Grid extends Drawing {
                 for (let j = 0; j < this.grid[y][x].nodes.length; j++){
                     const node = this.grid[y][x].nodes[j];
                     if(node.objectName !== "") {
+                        //TODO: somehow the player gets drawn below some objects like the first grass also tiling is broken
+
                         const drawing = this.getDrawing(node.objectName);
                         drawing.x = x;
                         drawing.y = y;

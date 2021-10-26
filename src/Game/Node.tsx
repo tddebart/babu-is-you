@@ -146,6 +146,8 @@ export const Objects: {[key:string]: {x:number, y:number, zIndex:number, hasWalk
     "text_defeat":  {x:2,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
     "wall":         {x:1,y:1, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: true},
     "text_wall":    {x:0,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "grass":        {x:5,y:0, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: true},
+    "text_grass":   {x:5,y:0, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
 }
 
 export const objectNames = [
@@ -154,7 +156,8 @@ export const objectNames = [
     "me",
     "skull",
     "belt",
-    "wall"
+    "wall",
+    "grass"
 ]
 
 export const verbNames = [
