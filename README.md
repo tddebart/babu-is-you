@@ -1,6 +1,6 @@
 # Babu is you
 
-a knockoff recreation of the game [baba is you](https://store.steampowered.com/app/736260/Baba_Is_You/)
+a knockoff recreation of the game [baba is you](https://store.steampowered.com/app/736260/Baba_Is_You/) buy it steam to support the original creator.
 
 https://tddebart.github.io/babu-is-you
 
@@ -13,6 +13,8 @@ move drawings to game instead of saving it per grid also only load palette once 
 - if you go onto keke and go to the left when moving between tiles babu gets drawn below key
 - when creating new baba from keke the new baba will not have smooth transitions when moving
 
+try to import the baba is you levels from the .ld files
+
 ## First 7 levels
 - [x] wall tiles
 - [x] smooth transitions when moving
@@ -22,9 +24,9 @@ move drawings to game instead of saving it per grid also only load palette once 
 
 
 
-you have text-object like BABA
-you have text-verb like is, and
-you have text-quality like
+you have text-object like BABA  
+you have text-verb like is, and  
+you have text-quality like YOU
 # Sprite naming scheme
 
 
