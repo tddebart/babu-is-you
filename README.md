@@ -5,9 +5,13 @@ a knockoff recreation of the game [baba is you](https://store.steampowered.com/a
 https://tddebart.github.io/babu-is-you
 
 # TODO
+
+move drawings to game instead of saving it per grid also only load palette once instead of multiple times
+
 ## Bugs
 
-- if babu becomes keke, keke's walking frame will update really fast
+- if you go onto keke and go to the left when moving between tiles babu gets drawn below key
+- when creating new baba from keke the new baba will not have smooth transitions when moving
 
 ## First 7 levels
 - [x] wall tiles

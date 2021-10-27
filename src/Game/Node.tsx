@@ -1,3 +1,5 @@
+import Grid, {AnimatedImage} from "./Grid";
+import Canvas from "./Canvas";
 
 export default class Tile {
     public x:number;
@@ -28,16 +30,25 @@ export default class Tile {
 }
 
 export class Node {
+    get objectName(): string {
+        return this._objectName;
+    }
+
+    set objectName(value: string) {
+        this._objectName = value;
+        this.aniImg = new AnimatedImage(this.x, this.y,this.canvas,value, this.grid, this)
+    }
+
     // Text
     get isText(): boolean {
-        return this.text !== "";
+        return this.text !== ""
     }
 
     get zIndex(): number {
-        if(this.objectName === "") {
+        if(this._objectName === "") {
             return Objects["text_"+this.text].zIndex
         } else {
-            return Objects[this.objectName].zIndex
+            return Objects[this._objectName].zIndex
         }
     }
 
@@ -107,23 +118,36 @@ export class Node {
     public text: string;
     public isPlayer: boolean = false;
     private _isPushable: boolean = false;
-    public objectName: string;
+    private _objectName: string;
     public rules: Array<string> = [];
     private _lastDirection: number = 1;
+    public aniImg!: AnimatedImage;
+    public isMoving: boolean = false;
+    private canvas: Canvas;
+    private grid: Grid;
 
     xP: number = 0;
     yP: number = 0;
 
-    constructor(x:number,y:number, text:string = "", objectName:string = "", startDirection:number = 1) {
+    constructor(x:number,y:number,canvas:Canvas, grid:Grid, text:string = "", objectName:string = "", startDirection:number = 1) {
         this.x = x;
         this.y = y;
         this.text = text;
-        this.objectName = objectName
+        this._objectName = objectName
+        this.canvas = canvas;
+        this.grid = grid;
         if(startDirection === 1 && objectName === "" ? false : Objects[objectName].hasDirs) {
             this._lastDirection = 2
         } else {
             this._lastDirection = startDirection;
         }
+        let imageName;
+        if(objectName === "") {
+            imageName = "text_"+text;
+        } else {
+            imageName = objectName;
+        }
+        this.aniImg = new AnimatedImage(x,y,canvas, imageName, grid, this)
     }
 }
 
