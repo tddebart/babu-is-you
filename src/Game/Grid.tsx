@@ -240,8 +240,6 @@ export default class Grid extends Drawing {
 
     private gridImage: any;
 
-    public active: boolean = true;
-
     public undoMoves: Array<Array<{node:Node, xP: number; yP: number, doAction: boolean}>> = [];
     public undoActions: Array<{node: Node, changeTo: any, changeOn: number}> = [];
 
@@ -261,8 +259,8 @@ export default class Grid extends Drawing {
         this.debug = debug;
         this.loadAllImages()
         this.setOffset()
-        this.initializeGrid(width, height)
         this.initializeDrawings();
+        this.initializeGrid(width, height)
         this.rules.updateRules()
         this.canvas.canvas.addEventListener('click', this.calculateText.bind(this));
     }
@@ -303,12 +301,10 @@ export default class Grid extends Drawing {
 
                         // load image from public folder
                         let img = new Image(24,24);
-                        if(hasWalking) {
-                            img.src = process.env.PUBLIC_URL+"/img/"+key + "/" + key + "_" + j + "_" + i + '.png'
-                        } else if (key.includes('text')) {
-                            img.src = process.env.PUBLIC_URL+"/img/texts/" + key + "_" + j + "_" + i + '.png'
+                        if (key.includes('text')) {
+                            img.src = process.env.PUBLIC_URL+"/img/texts/" + Objects[key].spriteName + "_" + j + "_" + i + '.png'
                         } else {
-                            img.src = process.env.PUBLIC_URL+"/img/objects/" + key + "_" + j + "_" + i + '.png'
+                            img.src = process.env.PUBLIC_URL+"/img/objects/" + Objects[key].spriteName + "_" + j + "_" + i + '.png'
                         }
 
                         // get the palette image data
@@ -383,37 +379,39 @@ export default class Grid extends Drawing {
             this.grid.push(currentY)
         }
         if(this.debug) {
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    if((x===5 && y===5)) {
-                        this.grid[y][x].nodes.push(new Node(x,y, this,"", 'babu'))
-                    }
-                    if((x===7 && y===5)) {
-                        this.grid[y][x].nodes.push(new Node(x,y,this,"", 'keke'));
-                        // this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
-                    }
-                    if((x===8 && y===5)) {
-                        // this.grid[y][x].nodes.push(new Node(x,y,this.canvas,this,"", 'wall'));
-                    }
+            setTimeout(() => {
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        if((x===5 && y===5)) {
+                            this.grid[y][x].nodes.push(new Node(x,y, this,"", 'babu'))
+                        }
+                        if((x===7 && y===5)) {
+                            this.grid[y][x].nodes.push(new Node(x,y,this,"", 'keke'));
+                            // this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
+                        }
+                        if((x===8 && y===5)) {
+                            // this.grid[y][x].nodes.push(new Node(x,y,this.canvas,this,"", 'wall'));
+                        }
 
-                    if((x===3 && y===3)) {
-                        this.grid[y][x].nodes.push(new Node(x,y,this,"babu"))
+                        if((x===3 && y===3)) {
+                            this.grid[y][x].nodes.push(new Node(x,y,this,"babu"))
+                        }
+                        if((x===4 && y===3)) {
+                            this.grid[y][x].nodes.push(new Node(x,y,this,"is"))
+                        }
+                        if((x===5 && y===3)) {
+                            this.grid[y][x].nodes.push(new Node(x,y,this,"you"));
+                        }
+                        //
+                        // if((x===7 && y===4)) {
+                        //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"keke"))
+                        // }
+                        // if((x===7 && y===6)) {
+                        //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"me"))
+                        // }
                     }
-                    if((x===4 && y===3)) {
-                        this.grid[y][x].nodes.push(new Node(x,y,this,"is"))
-                    }
-                    if((x===5 && y===3)) {
-                        this.grid[y][x].nodes.push(new Node(x,y,this,"you"))
-                    }
-                    //
-                    // if((x===7 && y===4)) {
-                    //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"keke"))
-                    // }
-                    // if((x===7 && y===6)) {
-                    //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"me"))
-                    // }
                 }
-            }
+            }, 5000)
         }
     }
 
@@ -429,7 +427,7 @@ export default class Grid extends Drawing {
             // if(objectNames.indexOf(text) !== -1) {
             //     this.grid[gridPos.y][gridPos.x].nodes.push(new Node(gridPos.x,gridPos.y,"", text))
             // } else {
-                this.grid[gridPos.y][gridPos.x].nodes.push(new Node(gridPos.x,gridPos.y,this,text))
+            this.grid[gridPos.y][gridPos.x].nodes.push(new Node(gridPos.x,gridPos.y,this,text))
             // }
         }
         this.rules.updateRules();
@@ -466,7 +464,7 @@ export default class Grid extends Drawing {
         }
     }
 
-    canMoveIntoNode(node:Node, xP:number, yP:number) {
+    canMoveIntoNode(node:Node, xP:number, yP:number, skipPushable:boolean = false) {
         const grid = this.grid;
 
         const x = node.x;
@@ -475,7 +473,7 @@ export default class Grid extends Drawing {
         if(x+xP < 0 || x+xP > this.width-1 || y+yP < 0 || y+yP > this.height-1) return false;
         for (let i = 0; i < grid[y+yP][x+xP].nodes.length; i++) {
             const nextNode = grid[y+yP][x+xP].nodes[i];
-            if(nextNode.isPushable) {
+            if(!skipPushable && nextNode.isPushable) {
                 // return if coords out of bounds
                 if(nextNode.x+xP < 0 || nextNode.x+xP > this.width-1 || nextNode.y+yP < 0 || nextNode.y+yP > this.height-1) return false;
 
@@ -498,9 +496,9 @@ export default class Grid extends Drawing {
         return true;
     }
 
-    moveNode(node: Node, xP:number, yP:number, skipMoveCheck:boolean = false, skipAddUndoCheck:boolean = false, reverseDirection:boolean = false): boolean {
+    moveNode(node: Node, xP:number, yP:number, skipMoveCheck:boolean = false, skipAddUndoCheck:boolean = false, reverseDirection:boolean = false, skipPushable:boolean = false): boolean {
 
-        if(!skipMoveCheck && !this.canMoveIntoNode(node, xP, yP)) {
+        if(!skipMoveCheck && !this.canMoveIntoNode(node, xP, yP, skipPushable)) {
             return false;
         }
 
@@ -537,7 +535,6 @@ export default class Grid extends Drawing {
     //#region drawing
 
     draw() {
-        if(!this.active) return;
         this.ctx.clearRect(0,0,this.canvas.canvas.width,this.canvas.canvas.height)
         this.ctx.imageSmoothingEnabled = false
 
@@ -552,22 +549,26 @@ export default class Grid extends Drawing {
 
 
                             const drawing = node.aniImg;
-                            drawing.x = x;
-                            drawing.y = y;
-                            drawing.grid = this;
-                            drawing.lastDirection = node.lastDirection();
-                            drawing.offset = this.offset;
-                            drawing.draw()
+                            if(drawing !== null) {
+                                drawing.x = x;
+                                drawing.y = y;
+                                drawing.grid = this;
+                                drawing.lastDirection = node.lastDirection();
+                                drawing.offset = this.offset;
+                                drawing.draw()
+                            }
                         }
                         if(node.isText) {
                             if(Objects["text_"+node.text].zIndex !== zI) continue
 
                             const drawing = node.aniImg;
-                            drawing.x = x;
-                            drawing.y = y;
-                            drawing.grid = this;
-                            drawing.offset = this.offset;
-                            drawing.draw()
+                            if(drawing !== null) {
+                                drawing.x = x;
+                                drawing.y = y;
+                                drawing.grid = this;
+                                drawing.offset = this.offset;
+                                drawing.draw()
+                            }
                         }
                     }
                 }

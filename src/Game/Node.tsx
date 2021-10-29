@@ -37,7 +37,11 @@ export class Node {
 
     set objectName(value: string) {
         this._objectName = value;
-        this.aniImg = new AnimatedImage(this.x, this.y,this.grid,value, this)
+        if(value !== "") {
+            this.aniImg = new AnimatedImage(this.x, this.y,this.grid,value, this)
+        } else {
+            this.aniImg = null;
+        }
     }
 
     // Text
@@ -47,10 +51,13 @@ export class Node {
 
     get zIndex(): number {
         if(this._objectName === "") {
-            return Objects["text_"+this.text].zIndex
+            if(Object.keys(Objects).indexOf("text_"+this.text) !== -1) {
+                return Objects["text_"+this.text].zIndex
+            }
         } else {
             return Objects[this._objectName].zIndex
         }
+        return 0;
     }
 
 
@@ -65,13 +72,22 @@ export class Node {
 
     // Is object, verb or quality
     get isText_Object(): boolean {
-        return objectNames.indexOf(this.text.toLowerCase()) !== -1;
+        if(this.isText) {
+            return Objects["text_"+this.text].type === 0;
+        }
+        return false;
     }
     get isText_Verb(): boolean {
-        return verbNames.indexOf(this.text.toLowerCase()) !== -1;
+        if(this.isText) {
+            return Objects["text_"+this.text].type === 1;
+        }
+        return false;
     }
     get isText_Quality(): boolean {
-        return qualityNames.indexOf(this.text.toLowerCase()) !== -1;
+        if(this.isText) {
+            return Objects["text_" + this.text].type === 2;
+        }
+        return false;
     }
 
     is(rule: string): boolean {
@@ -122,7 +138,7 @@ export class Node {
     private _objectName: string;
     public rules: Array<string> = [];
     private _lastDirection: number = 1;
-    public aniImg: AnimatedImage;
+    public aniImg: AnimatedImage | null;
     public isMoving: boolean = false;
     private canvas: Canvas;
     private grid: Grid;
@@ -154,57 +170,13 @@ export class Node {
     }
 }
 
-export const Objects: {[key:string]: {x:number, y:number, zIndex:number, hasWalkAni: boolean, hasDirs: boolean, isTileable: boolean}} = {
-    "babu":         {x:0,y:3, zIndex:24, hasWalkAni: true, hasDirs: false, isTileable: false},
-    "text_babu":    {x:4,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "keke":         {x:2,y:2, zIndex:24, hasWalkAni: true, hasDirs: false, isTileable: false},
-    "text_keke":    {x:2,y:2, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "me":           {x:3,y:1, zIndex:24, hasWalkAni: true, hasDirs: false, isTileable: false},
-    "text_me":      {x:3,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "text_you":     {x:4,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "skull":        {x:2,y:1, zIndex:21, hasWalkAni: false, hasDirs: true, isTileable: false},
-    "text_skull":   {x:2,y:1, zIndex:21, hasWalkAni: false, hasDirs: true, isTileable: false},
-    "text_push":    {x:6,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "text_stop":    {x:5,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "text_is":      {x:0,y:3, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "belt":         {x:1,y:1, zIndex:24, hasWalkAni: false, hasDirs: true, isTileable: false},
-    "text_belt":    {x:1,y:3, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "text_shift":   {x:1,y:3, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "text_move":    {x:5,y:3, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "text_defeat":  {x:2,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "wall":         {x:1,y:1, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: true},
-    "text_wall":    {x:0,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "grass":        {x:5,y:0, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: true},
-    "text_grass":   {x:5,y:0, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "text_win":     {x:2,y:4, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "text_flag":    {x:2,y:4, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "flag":         {x:2,y:4, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "tile":         {x:1,y:1, zIndex:1, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "rock":         {x:6,y:1, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
-    "text_rock":    {x:6,y:1, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
-    //TODO: automate this by reading from DefaultsByName which is imported from values.lua
-}
-
-export const objectNames = [
-    "babu",
-    "keke",
-    "me",
-    "skull",
-    "belt",
-    "wall",
-    "grass"
-]
-
-export const verbNames = [
-    "is",
-    "and"
-]
-
-export const qualityNames = [
-    "you",
-    "push",
-    "stop",
-    "defeat",
-    "move",
-    "shift"
-]
+export const Objects: {[key:string]: {
+        x:number,
+        y:number,
+        type:number,
+        zIndex:number,
+        hasWalkAni: boolean,
+        hasDirs: boolean,
+        isTileable: boolean,
+        spriteName: string
+}} = {}

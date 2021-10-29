@@ -3,7 +3,7 @@ import "./Game.css"
 import Canvas from "./Canvas";
 import Grid from "./Grid";
 import gitLogo from "../GitHub-Mark-64px.png";
-import {GenerateDefault, ReadMap} from "./Reader";
+import {GenerateDefault, ReadMapFromBrowseFile} from "./Reader";
 
 export default class Game extends Component {
     static get grid(): Grid {
@@ -19,7 +19,7 @@ export default class Game extends Component {
     private canMove: boolean = true;
     private justUndone: boolean = false;
     private interval!: any;
-    private debug: boolean = true;
+    private debug: boolean = true
 
     constructor(props: any) {
         super(props);
@@ -104,7 +104,7 @@ export default class Game extends Component {
         const undoMoves = Game._grid.undoMoves[Game._grid.undoStep-1].slice()
         for (let i = undoMoves.length-1; i >= 0; i--) {
             const undoMove = undoMoves[i]
-            Game._grid.moveNode(undoMove.node, undoMove.xP, undoMove.yP,false,true, true)
+            Game._grid.moveNode(undoMove.node, undoMove.xP, undoMove.yP,false,true, true, true)
             for (const undoAction of Game._grid.undoActions) {
                 if(undoAction.changeOn === Game._grid.undoStep) {
                     undoAction.node.objectName = undoAction.changeTo;
@@ -156,11 +156,11 @@ export default class Game extends Component {
                     <img className={"github"} src={gitLogo} alt={"github"} />
                 </a>
                 <button style={{position: "absolute", top: "10px"}} onClick={() => console.log(Game._grid)}>Grid</button>
-                <input type={"file"} style={{position: "absolute", left: 250, top: "10px"}} onChange={(e) => ReadMap(e)}/>
+                <input type={"file"} style={{position: "absolute", left: 250, top: "10px"}} onChange={(e) => ReadMapFromBrowseFile(e)}/>
                 <div id={"rules-text"} style={{position: "absolute", top: "10px", left: "10px", textAlign: "left"}}/>
                 <Canvas ref={el => {
                     if(el) {
-                        return Game.canvas = el;
+                        return Game.canvas = el
                     }
                 }}/>
             </>

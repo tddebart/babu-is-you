@@ -1,24 +1,29 @@
 import pako from 'pako';
 import Game from "./Game";
 import Grid from "./Grid";
-import {Node} from "./Node";
+import {Node, Objects} from "./Node";
 
 class Item {
     ID: number = -1;
     Name: string = "";
     Active: boolean;
-    ActiveColor: number;
     x:number = 0;
     y:number = 0;
+    Sprite: string = "";
+    direction: number = 1;
+    Tiling: number = -1;
+    Color!: {x:number, y:number}
+    zIndex: number = 13;
+    Type: number = 0;
 
 
     constructor() {
         this.Active = true
-        this.ActiveColor = -1;
     }
 }
 
 export let DefaultsById: {[key: number]: Item} = {}
+export let DefaultsByName: {[key: string]: Item} = {}
 
 export function GenerateDefault() {
     fetch(process.env.PUBLIC_URL+"/values.lua").then(
@@ -80,27 +85,40 @@ function ReadAllObjectLines(startIndex: number, lines: Array<string>) {
         //     DefaultsByID.push(item.ID);
         // }
         DefaultsById[item.ID] = item
+        DefaultsByName[item.Name] = item;
     }
     // DefaultsByObject.push(Item.EMPTY.Object);
     // DefaultsByName.push(Item.EMPTY.Name);
     // DefaultsByID.push(Item.EMPTY.ID);
     console.log(DefaultsById)
+
+    SetupObjects();
     return maxID;
 }
 
 function SetItemValue(item: Item, obj:string, value:string) {
     switch (obj) {
         case "name": item.Name = value.substring(1, value.length - 2); break;
+        case "sprite": item.Sprite = value.substring(1, value.length - 2); break;
         // case "sprite_in_root": item.SpriteInRoot = ParseBool(value); break;
         // case "type": item.Type = ParseByte(value); break;
-        // case "layer": item.Layer = ParseByte(value); break;
-        case "active": item.ActiveColor = CoordinateToShort(value); break;
-        // case "tiling": item.Tiling = ParseByte(value); break;
+        case "layer": item.zIndex = parseInt(value); break;
+        case "colour": item.Color = CoordinateToObject(value); break;
+        case "active": item.Color = CoordinateToObject(value); break;
+        case "tiling": item.Tiling = parseInt(value); break;
         case "tile": item.ID = CoordinateToShort(value); break;
+        case "type": item.Type = parseInt(value); break;
     }
 }
 
-function CoordinateToShort(coordinate:string) {
+function CoordinateToObject(coordinate:string): {x:number, y:number} {
+    let x = parseInt(coordinate.split("")[1])
+    let y = parseInt(coordinate.split("")[4])
+
+    return {x:x,y:y}
+}
+
+function CoordinateToShort(coordinate:string): number {
     let startIndex = 0;
     let endIndex = coordinate.length;
     if (coordinate.indexOf('{') === 0) {
@@ -115,47 +133,74 @@ function CoordinateToShort(coordinate:string) {
     let y = parseInt(coordinate.substring(index + 1, index + (endIndex - index - 1)));
     return (y << 8) | x;
 }
-function ShortToCoordinate(value: number) {
-    let x = value;
-    let y = value >> 8
-    return {x:x, y:y}
+
+function SetupObjects() {
+    for (const itemKey of Object.keys(DefaultsByName)) {
+        const item = DefaultsByName[itemKey];
+        if(Object.keys(Objects).indexOf(item.Name) === -1) {
+            Objects[itemKey] = {
+                x:item.Color.x,
+                y:item.Color.y,
+                type:item.Type,
+                zIndex: item.zIndex,
+                hasWalkAni: item.Tiling === 2,
+                hasDirs: item.Tiling === 0,
+                isTileable: item.Tiling === 1,
+                spriteName:item.Sprite}
+        }
+    }
+    console.log(Objects)
 }
 
-export function ReadMap(e: any) {
+//TODO: This has not been tested yet
+export function ReadMapFromLocalFile(path:string) {
+    fetch(path).then(
+        function(res) {
+            return res.text();
+        }).then(function(data) {
+        ReadMap(data)
+    })
+}
+
+export function ReadMapFromBrowseFile(e:any) {
     const file = e.target.files[0];
     if (!file) {
         return;
     }
     const reader = new FileReader();
     reader.onload = function() {
-        const result = this.result;
-        if(result === null || typeof result !== "string") return;
-        if(result.slice(0,8) !== "ACHTUNG!") {
-            console.error("Invalid map file")
-            return
-        }
-
-        let hex = "";
-        for (let i = 0; i < result.length; i++) {
-            let byteStr = result.charCodeAt(i).toString(16);
-            if (byteStr.length < 2) {
-                byteStr = "0" + byteStr;
-            }
-            hex += " " + byteStr;
-        }
-        let hexArr = hex.split(" ")
-        hexArr.shift();
-
-
-        let position = 28;
-        let layerCount = binArrayToNumb(hexArr.slice(position, position+2))
-        position += 2;
-        // version is assumed to be 261 (it is for all levels as far as I can tell)
-        for (let i = 0; i < layerCount; i++) {
-            ReadLayer(hexArr, position)
-        }
+        return ReadMap(this.result)
     }
     reader.readAsBinaryString(file);
+}
+
+
+export function ReadMap(result:any) {
+    if(result === null || typeof result !== "string") return;
+    if(result.slice(0,8) !== "ACHTUNG!") {
+        console.error("Invalid map file")
+        return
+    }
+
+    let hex = "";
+    for (let i = 0; i < result.length; i++) {
+        let byteStr = result.charCodeAt(i).toString(16);
+        if (byteStr.length < 2) {
+            byteStr = "0" + byteStr;
+        }
+        hex += " " + byteStr;
+    }
+    let hexArr = hex.split(" ")
+    hexArr.shift();
+
+
+    let position = 28;
+    let layerCount = binArrayToNumb(hexArr.slice(position, position+2))
+    position += 2;
+    // version is assumed to be 261 (it is for all levels as far as I can tell)
+    for (let i = 0; i < layerCount; i++) {
+        ReadLayer(hexArr, position)
+    }
 }
 
 function ReadLayer(hexArr: Array<string>, position:number) {
@@ -178,7 +223,7 @@ function ReadLayer(hexArr: Array<string>, position:number) {
     let compressed_size = binArrayToNumb(hexArr.slice(position, position + 4))
     position += 4;
     let compressed = hexArr.slice(position, position + compressed_size)
-    position += compressed_size;
+    // position += compressed_size;
 
     let compArray = new Uint8Array(compressed.map(byte => parseInt(byte, 16)))
 
@@ -193,7 +238,7 @@ function ReadLayer(hexArr: Array<string>, position:number) {
         map_buffer.push(tmp.toString())
     }
 
-    let items = [];
+    let items: Array<Item> = [];
     for (let j = 0, k = 0; j < size; j++, k+=2) {
         let id = binArrayToNumb([map_buffer[k],map_buffer[k+1]])
 
@@ -215,29 +260,29 @@ function ReadLayer(hexArr: Array<string>, position:number) {
 
 
     //DATA contains item direction
-    position += 9
-    compressed_size = binArrayToNumb(hexArr.slice(position, position + 4))
-    position += 4;
-    compressed = hexArr.slice(position, position + compressed_size)
-    // position += compressed_size;
-
-    compArray = new Uint8Array(compressed.map(byte => parseInt(byte, 16)))
-
-    let dirs_buffer = pako.inflate(compArray)
-
-    for (let j = 0; j < size; j++) {
-        let direction = dirs_buffer[j]
-        console.log(direction)
-    }
+    // position += 9
+    // compressed_size = binArrayToNumb(hexArr.slice(position, position + 4))
+    // position += 4;
+    // compressed = hexArr.slice(position, position + compressed_size)
+    // // position += compressed_size;
+    //
+    // compArray = new Uint8Array(compressed.map(byte => parseInt(byte, 16)))
+    //
+    // let dirs_buffer = pako.inflate(compArray)
+    //
+    // for (let j = 0; j < size; j++) {
+    //     let direction = dirs_buffer[j]
+    //     items[j].direction = direction;
+    // }
 
     console.log(items)
 
     let grid = new Grid(Game.canvas, width-2, height-2, 70)
     for (const item of items) {
         if(item.Name.includes("text")) {
-            grid.grid[item.y-1][item.x-1].nodes.push(new Node(item.x-1,item.y-1,grid, item.Name.split("_")[1]))
+            grid.grid[item.y-1][item.x-1].nodes.push(new Node(item.x-1,item.y-1,grid, item.Name.split("_")[1], "", item.direction))
         } else {
-            grid.grid[item.y-1][item.x-1].nodes.push(new Node(item.x-1,item.y-1,grid,"", item.Name));
+            grid.grid[item.y-1][item.x-1].nodes.push(new Node(item.x-1,item.y-1,grid,"", item.Name, item.direction));
         }
 
     }

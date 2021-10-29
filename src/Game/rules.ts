@@ -1,5 +1,5 @@
 import Grid from "./Grid";
-import {objectNames} from "./Node";
+import {Objects} from "./Node";
 
 export default class Rules {
     public grid: Grid;
@@ -75,7 +75,7 @@ export default class Rules {
             }
 
             for (const node of nodesWithObjectName) {
-                if(objectNames.indexOf(qualityName) !== -1) {
+                if(Object.keys(Objects).indexOf(qualityName) !== -1) {
                     // this.grid.playerPositions = []
 
                     this.grid.undoActions.push({node: node, changeTo: node.objectName, changeOn: this.grid.undoStep+1})
