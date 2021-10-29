@@ -1,5 +1,6 @@
 import Grid, {AnimatedImage} from "./Grid";
 import Canvas from "./Canvas";
+import Game from "./Game";
 
 export default class Tile {
     public x:number;
@@ -36,7 +37,7 @@ export class Node {
 
     set objectName(value: string) {
         this._objectName = value;
-        this.aniImg = new AnimatedImage(this.x, this.y,this.canvas,value, this.grid, this)
+        this.aniImg = new AnimatedImage(this.x, this.y,this.grid,value, this)
     }
 
     // Text
@@ -121,7 +122,7 @@ export class Node {
     private _objectName: string;
     public rules: Array<string> = [];
     private _lastDirection: number = 1;
-    public aniImg!: AnimatedImage;
+    public aniImg: AnimatedImage;
     public isMoving: boolean = false;
     private canvas: Canvas;
     private grid: Grid;
@@ -129,17 +130,19 @@ export class Node {
     xP: number = 0;
     yP: number = 0;
 
-    constructor(x:number,y:number,canvas:Canvas, grid:Grid, text:string = "", objectName:string = "", startDirection:number = 1) {
+    constructor(x:number,y:number,grid:Grid, text:string = "", objectName:string = "", startDirection:number = 1) {
         this.x = x;
         this.y = y;
         this.text = text;
         this._objectName = objectName
-        this.canvas = canvas;
+        this.canvas = Game.canvas;
         this.grid = grid;
-        if(startDirection === 1 && objectName === "" ? false : Objects[objectName].hasDirs) {
-            this._lastDirection = 2
-        } else {
-            this._lastDirection = startDirection;
+        if((Object.keys(Objects).indexOf(objectName) !== -1)) {
+            if(startDirection === 1 && objectName === "" ? false : Objects[objectName].hasDirs) {
+                this._lastDirection = 2
+            } else {
+                this._lastDirection = startDirection;
+            }
         }
         let imageName;
         if(objectName === "") {
@@ -147,7 +150,7 @@ export class Node {
         } else {
             imageName = objectName;
         }
-        this.aniImg = new AnimatedImage(x,y,canvas, imageName, grid, this)
+        this.aniImg = new AnimatedImage(x,y,grid, imageName, this)
     }
 }
 
@@ -160,6 +163,7 @@ export const Objects: {[key:string]: {x:number, y:number, zIndex:number, hasWalk
     "text_me":      {x:3,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
     "text_you":     {x:4,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
     "skull":        {x:2,y:1, zIndex:21, hasWalkAni: false, hasDirs: true, isTileable: false},
+    "text_skull":   {x:2,y:1, zIndex:21, hasWalkAni: false, hasDirs: true, isTileable: false},
     "text_push":    {x:6,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
     "text_stop":    {x:5,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
     "text_is":      {x:0,y:3, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
@@ -172,6 +176,13 @@ export const Objects: {[key:string]: {x:number, y:number, zIndex:number, hasWalk
     "text_wall":    {x:0,y:1, zIndex:24, hasWalkAni: false, hasDirs: false, isTileable: false},
     "grass":        {x:5,y:0, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: true},
     "text_grass":   {x:5,y:0, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "text_win":     {x:2,y:4, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "text_flag":    {x:2,y:4, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "flag":         {x:2,y:4, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "tile":         {x:1,y:1, zIndex:1, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "rock":         {x:6,y:1, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
+    "text_rock":    {x:6,y:1, zIndex:13, hasWalkAni: false, hasDirs: false, isTileable: false},
+    //TODO: automate this by reading from DefaultsByName which is imported from values.lua
 }
 
 export const objectNames = [

@@ -1,13 +1,14 @@
 import Canvas, {Drawing} from "./Canvas";
 import Tile, {Node, Objects} from "./Node";
 import Rules from "./rules";
+import Game from "./Game";
 
 export class AnimatedImage extends Drawing {
     public currentDirection: number = 0;
     public lastDirection: number = 1;
     public extraWalking: number = 3;
 
-    public imageName: string;
+    public imageName: string
 
     public drawings: Array<Array<any>> = []
 
@@ -30,12 +31,12 @@ export class AnimatedImage extends Drawing {
     public grid: Grid;
     public node: Node;
 
-    constructor(x:number, y:number, canvas: Canvas, imageName: string, grid:Grid, node:Node) {
-        super(canvas, false);
+    constructor(x:number, y:number, grid:Grid, imageName: string, node:Node) {
+        super(Game.canvas, false);
         this.imageName = imageName;
         this.grid = grid
         this.node = node;
-        this.resolution = this.grid.resolution;
+        this.resolution = grid.resolution;
 
         this.x = x;
         this.xLastFrame = x;
@@ -250,12 +251,14 @@ export default class Grid extends Drawing {
     public rules: Rules = new Rules(this);
 
     public didMoveThisStep: boolean = false;
+    private readonly debug: boolean;
 
-    constructor(canvas: Canvas, width: number, height: number, resolution: number) {
+    constructor(canvas: Canvas, width: number, height: number, resolution: number, debug: boolean = false) {
         super(canvas)
         this.width = width;
         this.height = height;
         this.resolution = resolution;
+        this.debug = debug;
         this.loadAllImages()
         this.setOffset()
         this.initializeGrid(width, height)
@@ -379,35 +382,37 @@ export default class Grid extends Drawing {
             }
             this.grid.push(currentY)
         }
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                if((x===5 && y===5)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,this.canvas,this, "", 'babu'))
-                }
-                if((x===7 && y===5)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,this.canvas,this,"", 'keke'));
-                    // this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
-                }
-                if((x===8 && y===5)) {
-                    // this.grid[y][x].nodes.push(new Node(x,y,this.canvas,this,"", 'wall'));
-                }
+        if(this.debug) {
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    if((x===5 && y===5)) {
+                        this.grid[y][x].nodes.push(new Node(x,y, this,"", 'babu'))
+                    }
+                    if((x===7 && y===5)) {
+                        this.grid[y][x].nodes.push(new Node(x,y,this,"", 'keke'));
+                        // this.grid[y][x].nodes.push(new Node(x,y,"", 'me'))
+                    }
+                    if((x===8 && y===5)) {
+                        // this.grid[y][x].nodes.push(new Node(x,y,this.canvas,this,"", 'wall'));
+                    }
 
-                if((x===3 && y===3)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,this.canvas,this,"babu"))
+                    if((x===3 && y===3)) {
+                        this.grid[y][x].nodes.push(new Node(x,y,this,"babu"))
+                    }
+                    if((x===4 && y===3)) {
+                        this.grid[y][x].nodes.push(new Node(x,y,this,"is"))
+                    }
+                    if((x===5 && y===3)) {
+                        this.grid[y][x].nodes.push(new Node(x,y,this,"you"))
+                    }
+                    //
+                    // if((x===7 && y===4)) {
+                    //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"keke"))
+                    // }
+                    // if((x===7 && y===6)) {
+                    //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"me"))
+                    // }
                 }
-                if((x===4 && y===3)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,this.canvas,this,"is"))
-                }
-                if((x===5 && y===3)) {
-                    this.grid[y][x].nodes.push(new Node(x,y,this.canvas,this,"you"))
-                }
-                //
-                // if((x===7 && y===4)) {
-                //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"keke"))
-                // }
-                // if((x===7 && y===6)) {
-                //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"me"))
-                // }
             }
         }
     }
@@ -424,7 +429,7 @@ export default class Grid extends Drawing {
             // if(objectNames.indexOf(text) !== -1) {
             //     this.grid[gridPos.y][gridPos.x].nodes.push(new Node(gridPos.x,gridPos.y,"", text))
             // } else {
-                this.grid[gridPos.y][gridPos.x].nodes.push(new Node(gridPos.x,gridPos.y,this.canvas,this,text))
+                this.grid[gridPos.y][gridPos.x].nodes.push(new Node(gridPos.x,gridPos.y,this,text))
             // }
         }
         this.rules.updateRules();

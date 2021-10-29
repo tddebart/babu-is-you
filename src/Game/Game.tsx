@@ -3,13 +3,23 @@ import "./Game.css"
 import Canvas from "./Canvas";
 import Grid from "./Grid";
 import gitLogo from "../GitHub-Mark-64px.png";
+import {GenerateDefault, ReadMap} from "./Reader";
 
 export default class Game extends Component {
-    private canvas!: Canvas | null;
-    private grid!:Grid;
+    static get grid(): Grid {
+        return this._grid;
+    }
+
+    static set grid(value: Grid) {
+        this._grid = value;
+        window.addEventListener("resize", value.setOffset.bind(Game.grid))
+    }
+    static canvas: Canvas;
+    private static _grid:Grid;
     private canMove: boolean = true;
     private justUndone: boolean = false;
     private interval!: any;
+    private debug: boolean = true;
 
     constructor(props: any) {
         super(props);
@@ -17,64 +27,64 @@ export default class Game extends Component {
     }
 
     componentDidMount() {
-        if (this.canvas) {
-            this.grid = new Grid(this.canvas, 10, 10, 70);
-            window.addEventListener("resize", this.grid.setOffset.bind(this.grid))
-            window.addEventListener('keydown',this.keyDetectDown.bind(this),false);
-            window.addEventListener('keyup',this.keyDetectUp.bind(this),false);
+        Game._grid = new Grid(Game.canvas, 10, 10, 70, this.debug);
+        window.addEventListener("resize", Game._grid.setOffset.bind(Game._grid))
+        window.addEventListener('keydown',this.keyDetectDown.bind(this),false);
+        window.addEventListener('keyup',this.keyDetectUp.bind(this),false);
 
-            // Detect loading with this
+        GenerateDefault()
 
-            // window.addEventListener('DOMContentLoaded', function() {
-            //     console.log("started loading")
-            // })
-            // window.addEventListener(`load`, () => {
-            //     console.log('i have loaded')
-            // })
-        }
+        // Detect loading with this
+
+        // window.addEventListener('DOMContentLoaded', function() {
+        //     console.log("started loading")
+        // })
+        // window.addEventListener(`load`, () => {
+        //     console.log('i have loaded')
+        // })
     }
 
     movePlayers(xP:number, yP:number) {
         if(!this.canMove) return;
-        if(this.grid.playerPositions.length !== 0) {
-            this.grid.undoMoves.length = this.grid.undoStep;
-            if (this.grid.undoMoves.length > 50) {
-                this.grid.undoMoves.shift();
-                this.grid.undoStep--
+        if(Game._grid.playerPositions.length !== 0) {
+            Game._grid.undoMoves.length = Game._grid.undoStep;
+            if (Game._grid.undoMoves.length > 50) {
+                Game._grid.undoMoves.shift();
+                Game._grid.undoStep--
             }
             let doExtra = 0;
-            for (const pos of this.grid.playerPositions) {
+            for (const pos of Game._grid.playerPositions) {
                 if (pos.skip) {
                     pos.skip = false;
                     continue
                 }
-                const findPlayerNode = this.grid.grid[pos.y][pos.x].nodes.find(v => v.isPlayer);
+                const findPlayerNode = Game._grid.grid[pos.y][pos.x].nodes.find(v => v.isPlayer);
                 if(findPlayerNode != null) {
-                    if(!this.grid.moveNode(findPlayerNode, xP, yP)) doExtra++;
+                    if(!Game._grid.moveNode(findPlayerNode, xP, yP)) doExtra++;
                     pos.skip = false;
                 }
             }
-            this.grid.doMovement();
-            this.grid.rules.updateRules()
+            Game._grid.doMovement();
+            Game._grid.rules.updateRules()
             let howManyRulesNotYou = 0;
-            for (const rule of this.grid.rules.rules) {
+            for (const rule of Game._grid.rules.rules) {
                 if(rule.split(" ")[2] !== "you") {
                     howManyRulesNotYou++;
                 }
             }
 
-            if(doExtra !== this.grid.playerPositions.length || howManyRulesNotYou === this.grid.rules.rules.length || this.grid.didMoveThisStep) {
-                this.grid.undoStep++
-                this.grid.didMoveThisStep = false;
+            if(doExtra !== Game._grid.playerPositions.length || howManyRulesNotYou === Game._grid.rules.rules.length || Game._grid.didMoveThisStep) {
+                Game._grid.undoStep++
+                Game._grid.didMoveThisStep = false;
             }
 
-            if(this.grid.doAfterMove.length !== 0) {
-                for (const doAfterMove of this.grid.doAfterMove) {
+            if(Game._grid.doAfterMove.length !== 0) {
+                for (const doAfterMove of Game._grid.doAfterMove) {
                     doAfterMove.node.objectName = doAfterMove.newObjectName;
                 }
-                this.grid.rules.resetAllNodeRules()
+                Game._grid.rules.resetAllNodeRules()
             }
-            this.grid.rules.updateRules()
+            Game._grid.rules.updateRules()
 
             this.canMove = false;
 
@@ -85,29 +95,29 @@ export default class Game extends Component {
     }
 
     undoMoves() {
-        if(this.grid.undoStep-1 < 0) return;
+        if(Game._grid.undoStep-1 < 0) return;
         this.canMove = false
-        if(this.grid.undoMoves.length < this.grid.undoStep) {
-            console.error("Could not do undo with: " + this.grid.undoMoves + " and " + this.grid.undoStep);
+        if(Game._grid.undoMoves.length < Game._grid.undoStep) {
+            console.error("Could not do undo with: " + Game._grid.undoMoves + " and " + Game._grid.undoStep);
             return
         }
-        const undoMoves = this.grid.undoMoves[this.grid.undoStep-1].slice()
+        const undoMoves = Game._grid.undoMoves[Game._grid.undoStep-1].slice()
         for (let i = undoMoves.length-1; i >= 0; i--) {
             const undoMove = undoMoves[i]
-            this.grid.moveNode(undoMove.node, undoMove.xP, undoMove.yP,false,true, true)
-            for (const undoAction of this.grid.undoActions) {
-                if(undoAction.changeOn === this.grid.undoStep) {
+            Game._grid.moveNode(undoMove.node, undoMove.xP, undoMove.yP,false,true, true)
+            for (const undoAction of Game._grid.undoActions) {
+                if(undoAction.changeOn === Game._grid.undoStep) {
                     undoAction.node.objectName = undoAction.changeTo;
-                    this.grid.doAfterMove = []
+                    Game._grid.doAfterMove = []
                 }
             }
         }
-        this.grid.rules.updateRules()
-        this.grid.undoStep--;
+        Game._grid.rules.updateRules()
+        Game._grid.undoStep--;
         this.justUndone = true;
         this.canMove = true;
     }
-    
+
     keyDetectDown(e: KeyboardEvent) {
         if(e.repeat) return;
         if(this.interval !== undefined) return;
@@ -145,9 +155,14 @@ export default class Game extends Component {
                 <a href="https://github.com/tddebart/babu-is-you" target="_blank" rel="noreferrer">
                     <img className={"github"} src={gitLogo} alt={"github"} />
                 </a>
-                <button style={{position: "absolute", top: "10px"}} onClick={() => console.log(this.grid)}>Grid</button>
+                <button style={{position: "absolute", top: "10px"}} onClick={() => console.log(Game._grid)}>Grid</button>
+                <input type={"file"} style={{position: "absolute", left: 250, top: "10px"}} onChange={(e) => ReadMap(e)}/>
                 <div id={"rules-text"} style={{position: "absolute", top: "10px", left: "10px", textAlign: "left"}}/>
-                <Canvas ref={el => this.canvas = el}/>
+                <Canvas ref={el => {
+                    if(el) {
+                        return Game.canvas = el;
+                    }
+                }}/>
             </>
         )
     }

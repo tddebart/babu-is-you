@@ -13,12 +13,12 @@ move drawings to game instead of saving it per grid also only load palette once 
 - if you go onto keke and go to the left when moving between tiles babu gets drawn below key
 - when creating new baba from keke the new baba will not have smooth transitions when moving
 
-try to import the baba is you levels from the .ld files
+[x] try to import the baba is you levels from the .ld files
 
 ## First 7 levels
 - [x] wall tiles
 - [x] smooth transitions when moving
-- [ ] import grass and flag
+- [x] import grass and flag
 - [ ] make is sink and water
 - [ ] make is melt and is hot and lava
 
@@ -27,9 +27,8 @@ try to import the baba is you levels from the .ld files
 you have text-object like BABA  
 you have text-verb like is, and  
 you have text-quality like YOU
-# Sprite naming scheme
 
 
 # Copyright (c)
 
-I do not own any right to any images/sprites used in this game please don't sue me
+I do not own any right to any images/sprites or level design used in this game please don't sue me
