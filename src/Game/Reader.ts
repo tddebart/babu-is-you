@@ -11,6 +11,7 @@ class Item {
     x:number = 0;
     y:number = 0;
 
+
     constructor() {
         this.Active = true
         this.ActiveColor = -1;
@@ -114,6 +115,11 @@ function CoordinateToShort(coordinate:string) {
     let y = parseInt(coordinate.substring(index + 1, index + (endIndex - index - 1)));
     return (y << 8) | x;
 }
+function ShortToCoordinate(value: number) {
+    let x = value;
+    let y = value >> 8
+    return {x:x, y:y}
+}
 
 export function ReadMap(e: any) {
     const file = e.target.files[0];
@@ -121,7 +127,7 @@ export function ReadMap(e: any) {
         return;
     }
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function() {
         const result = this.result;
         if(result === null || typeof result !== "string") return;
         if(result.slice(0,8) !== "ACHTUNG!") {
@@ -213,7 +219,7 @@ function ReadLayer(hexArr: Array<string>, position:number) {
     compressed_size = binArrayToNumb(hexArr.slice(position, position + 4))
     position += 4;
     compressed = hexArr.slice(position, position + compressed_size)
-    position += compressed_size;
+    // position += compressed_size;
 
     compArray = new Uint8Array(compressed.map(byte => parseInt(byte, 16)))
 
@@ -221,7 +227,7 @@ function ReadLayer(hexArr: Array<string>, position:number) {
 
     for (let j = 0; j < size; j++) {
         let direction = dirs_buffer[j]
-        // console.log(direction)
+        console.log(direction)
     }
 
     console.log(items)
