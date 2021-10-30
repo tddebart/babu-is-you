@@ -279,7 +279,7 @@ function ReadLayer(hexArr: Array<string>, position:number) {
     // console.log(items)
 
     let grid = Game.grid;
-    grid.updateGrid(width,height)
+    grid.updateGrid(width-2,height-2)
     for (const item of items) {
         if(item.Name.includes("text")) {
             grid.grid[item.y-1][item.x-1].nodes.push(new Node(item.x-1,item.y-1,grid, item.Name.split("_")[1], "", item.direction))
