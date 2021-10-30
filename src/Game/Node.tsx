@@ -1,6 +1,6 @@
-import Grid, {AnimatedImage} from "./Grid";
+import Grid from "./Grid";
 import Canvas from "./Canvas";
-import Game from "./Game";
+import Game, {AnimatedImage} from "./Game";
 
 export default class Tile {
     public x:number;
@@ -51,11 +51,11 @@ export class Node {
 
     get zIndex(): number {
         if(this._objectName === "") {
-            if(Object.keys(Objects).indexOf("text_"+this.text) !== -1) {
-                return Objects["text_"+this.text].zIndex
+            if(Object.keys(Node.Objects).indexOf("text_"+this.text) !== -1) {
+                return Node.Objects["text_"+this.text].zIndex
             }
         } else {
-            return Objects[this._objectName].zIndex
+            return Node.Objects[this._objectName].zIndex
         }
         return 0;
     }
@@ -73,19 +73,19 @@ export class Node {
     // Is object, verb or quality
     get isText_Object(): boolean {
         if(this.isText) {
-            return Objects["text_"+this.text].type === 0;
+            return Node.Objects["text_"+this.text].type === 0;
         }
         return false;
     }
     get isText_Verb(): boolean {
         if(this.isText) {
-            return Objects["text_"+this.text].type === 1;
+            return Node.Objects["text_"+this.text].type === 1;
         }
         return false;
     }
     get isText_Quality(): boolean {
         if(this.isText) {
-            return Objects["text_" + this.text].type === 2;
+            return Node.Objects["text_" + this.text].type === 2;
         }
         return false;
     }
@@ -153,8 +153,8 @@ export class Node {
         this._objectName = objectName
         this.canvas = Game.canvas;
         this.grid = grid;
-        if((Object.keys(Objects).indexOf(objectName) !== -1)) {
-            if(startDirection === 1 && objectName === "" ? false : Objects[objectName].hasDirs) {
+        if((Object.keys(Node.Objects).indexOf(objectName) !== -1)) {
+            if(startDirection === 1 && objectName === "" ? false : Node.Objects[objectName].hasDirs) {
                 this._lastDirection = 2
             } else {
                 this._lastDirection = startDirection;
@@ -168,15 +168,15 @@ export class Node {
         }
         this.aniImg = new AnimatedImage(x,y,grid, imageName, this)
     }
+    static Objects: {[key:string]: {
+            x:number,
+            y:number,
+            type:number,
+            zIndex:number,
+            hasWalkAni: boolean,
+            hasDirs: boolean,
+            isTileable: boolean,
+            spriteName: string
+    }} = {}
 }
 
-export const Objects: {[key:string]: {
-        x:number,
-        y:number,
-        type:number,
-        zIndex:number,
-        hasWalkAni: boolean,
-        hasDirs: boolean,
-        isTileable: boolean,
-        spriteName: string
-}} = {}

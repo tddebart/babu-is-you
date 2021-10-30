@@ -8,13 +8,14 @@ https://tddebart.github.io/babu-is-you
 
 - move drawings to game instead of saving it per grid also only load palette once instead of multiple times
 - figure out how things like skull rock and wall have a secondary color
+- save the previous direction in the undo states
 
 ## Bugs
 
 - if you go onto keke and go to the left when moving between tiles babu gets drawn below key
 - when creating new baba from keke the new baba will not have smooth transitions when moving
 - when you change wall into flag it will undo that action on every undo see 1level.l and change wall into flag
-
+- see 5level.l . when you change into the wall and kill walls or stack walls the game will lag hard
 
 ## First 7 levels
 - [x] wall tiles

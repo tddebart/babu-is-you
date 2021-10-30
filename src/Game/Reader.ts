@@ -1,7 +1,6 @@
 import pako from 'pako';
 import Game from "./Game";
-import Grid from "./Grid";
-import {Node, Objects} from "./Node";
+import {Node} from "./Node";
 
 class Item {
     ID: number = -1;
@@ -35,6 +34,7 @@ export function GenerateDefault() {
             if(line.indexOf("tileslist =") === 0) {
                 const startIndex = lines.findIndex(value => value === line);
                 ReadAllObjectLines(startIndex, lines)
+                Game.loadAllImages()
             }
         }
     })
@@ -90,7 +90,7 @@ function ReadAllObjectLines(startIndex: number, lines: Array<string>) {
     // DefaultsByObject.push(Item.EMPTY.Object);
     // DefaultsByName.push(Item.EMPTY.Name);
     // DefaultsByID.push(Item.EMPTY.ID);
-    console.log(DefaultsById)
+    // console.log(DefaultsById)
 
     SetupObjects();
     return maxID;
@@ -137,8 +137,8 @@ function CoordinateToShort(coordinate:string): number {
 function SetupObjects() {
     for (const itemKey of Object.keys(DefaultsByName)) {
         const item = DefaultsByName[itemKey];
-        if(Object.keys(Objects).indexOf(item.Name) === -1) {
-            Objects[itemKey] = {
+        if(Object.keys(Node.Objects).indexOf(item.Name) === -1) {
+            Node.Objects[itemKey] = {
                 x:item.Color.x,
                 y:item.Color.y,
                 type:item.Type,
@@ -149,7 +149,8 @@ function SetupObjects() {
                 spriteName:item.Sprite}
         }
     }
-    console.log(Objects)
+    // console.log(Node.Objects)
+    Game.hasLoadedObjects = true;
 }
 
 //TODO: This has not been tested yet
@@ -275,9 +276,10 @@ function ReadLayer(hexArr: Array<string>, position:number) {
     //     items[j].direction = direction;
     // }
 
-    console.log(items)
+    // console.log(items)
 
-    let grid = new Grid(Game.canvas, width-2, height-2, 70)
+    let grid = Game.grid;
+    grid.updateGrid(width,height)
     for (const item of items) {
         if(item.Name.includes("text")) {
             grid.grid[item.y-1][item.x-1].nodes.push(new Node(item.x-1,item.y-1,grid, item.Name.split("_")[1], "", item.direction))
@@ -287,7 +289,6 @@ function ReadLayer(hexArr: Array<string>, position:number) {
 
     }
     grid.rules.updateRules()
-    Game.grid = grid;
 }
 
 function binArrayToNumb(arr: Array<string>): number {

@@ -1,5 +1,5 @@
 import Grid from "./Grid";
-import {Objects} from "./Node";
+import {Node} from "./Node";
 
 export default class Rules {
     public grid: Grid;
@@ -59,6 +59,8 @@ export default class Rules {
             const rules = rule.split(" ");
             // like baba
             const objectName = rules[0];
+            // like is
+            const verbName = rules[1];
             // like you or stop
             const qualityName = rules[2];
 
@@ -67,7 +69,7 @@ export default class Rules {
                 for (let x = 0; x < this.grid.width; x++) {
                     for (let i = 0; i < this.grid.grid[y][x].nodes.length; i++) {
                         const node = this.grid.grid[y][x].nodes[i]
-                        if (node.objectName === objectName) {
+                        if (node.objectName === objectName && verbName === "is") {
                             nodesWithObjectName.push(node)
                         }
                     }
@@ -75,7 +77,7 @@ export default class Rules {
             }
 
             for (const node of nodesWithObjectName) {
-                if(Object.keys(Objects).indexOf(qualityName) !== -1) {
+                if(Object.keys(Node.Objects).indexOf(qualityName) !== -1) {
                     // this.grid.playerPositions = []
 
                     this.grid.undoActions.push({node: node, changeTo: node.objectName, changeOn: this.grid.undoStep+1})
