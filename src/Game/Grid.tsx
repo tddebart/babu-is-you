@@ -93,15 +93,15 @@ export default class Grid extends Drawing {
                             this.grid[y][x].nodes.push(new Node(x,y,this,"you"));
                         }
                         //
-                        if((x===7 && y===4)) {
-                            this.grid[y][x].nodes.push(new Node(x,y,this,"keke"))
+                        if((x===6 && y===3)) {
+                            this.grid[y][x].nodes.push(new Node(x,y,this,"and"))
                         }
-                        if((x===8 && y===4)) {
-                            this.grid[y][x].nodes.push(new Node(x,y,this,"is"))
+                        if((x===7 && y===3)) {
+                            this.grid[y][x].nodes.push(new Node(x,y,this,"stop"));
                         }
-                        if((x===9 && y===4)) {
-                            this.grid[y][x].nodes.push(new Node(x,y,this,"sink"))
-                        }
+                        // if((x===9 && y===4)) {
+                        //     this.grid[y][x].nodes.push(new Node(x,y,this,"sink"))
+                        // }
                         // if((x===7 && y===6)) {
                         //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"me"))
                         // }
@@ -206,12 +206,12 @@ export default class Grid extends Drawing {
 
                 // if next tile empty you can move
                 if(grid[nextNode.y+yP][nextNode.x+xP].nodes.length === 0) {
-                    this.moveNode(nextNode, xP,yP)
+                    this.moveNode(nextNode, xP,yP, true)
                     return true;
                 }
                 for (let j = 0; j < grid[nextNode.y+yP][nextNode.x+xP].nodes.length; j++) {
                     if(this.canMoveIntoNode(nextNode, xP, yP)) {
-                        this.moveNode(nextNode, xP,yP)
+                        this.moveNode(nextNode, xP,yP, true)
                         return true;
                     }
                 }

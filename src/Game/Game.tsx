@@ -27,7 +27,7 @@ export default class Game extends Component {
     private canMove: boolean = true;
     private justUndone: boolean = false;
     private interval!: any;
-    static debug: boolean = true
+    static debug: boolean = false
     static resolution: number = 50;
 
     static hasLoadedObjects: boolean = false;
@@ -52,9 +52,12 @@ export default class Game extends Component {
         if(!this.canMove) return;
         if(Game._grid.playerPositions.length !== 0) {
             Game._grid.undoMoves.length = Game._grid.undoStep;
-            if (Game._grid.undoMoves.length > 50) {
+            if (Game._grid.undoMoves.length > 100) {
                 Game._grid.undoMoves.shift();
                 Game._grid.undoStep--
+                for (const undoAction of Game.grid.undoActions) {
+                    undoAction.changeOn--;
+                }
             }
             let doExtra = 0;
             for (const pos of Game._grid.playerPositions) {
@@ -91,7 +94,6 @@ export default class Game extends Component {
             Game._grid.rules.updateRules()
 
             this.canMove = false;
-
             setTimeout(() => {
                 this.canMove = true
             }, 100)
@@ -99,25 +101,26 @@ export default class Game extends Component {
     }
 
     undoMoves() {
-        if(Game._grid.undoStep-1 < 0) return;
+        if(Game.grid.undoStep-1 < 0) return;
         this.canMove = false
-        if(Game._grid.undoMoves.length < Game._grid.undoStep) {
-            console.error("Could not do undo with: " + Game._grid.undoMoves + " and " + Game._grid.undoStep);
+        if(Game.grid.undoMoves.length < Game.grid.undoStep) {
+            console.error("Could not do undo with: " + Game.grid.undoMoves + " and " + Game.grid.undoStep);
             return
         }
-        const undoMoves = Game._grid.undoMoves[Game._grid.undoStep-1].slice()
+        const undoMoves = Game.grid.undoMoves[Game.grid.undoStep-1].slice()
         for (let i = undoMoves.length-1; i >= 0; i--) {
             const undoMove = undoMoves[i]
-            Game._grid.moveNode(undoMove.node, undoMove.xP, undoMove.yP,false,true, true, true)
-            for (const undoAction of Game._grid.undoActions) {
-                if(undoAction.changeOn === Game._grid.undoStep) {
+            Game.grid.moveNode(undoMove.node, undoMove.xP, undoMove.yP,false,true, true, true)
+            for (const undoAction of Game.grid.undoActions) {
+                if(undoAction.changeOn === Game.grid.undoStep) {
                     undoAction.node.objectName = undoAction.changeTo;
-                    Game._grid.doAfterMove = []
+                    Game.grid.doAfterMove = []
+                    Game.grid.undoActions = Game.grid.undoActions.filter(value => value !== undoAction)
                 }
             }
         }
-        Game._grid.rules.updateRules()
-        Game._grid.undoStep--;
+        Game.grid.rules.updateRules()
+        Game.grid.undoStep--;
         this.justUndone = true;
         this.canMove = true;
     }
@@ -156,7 +159,7 @@ export default class Game extends Component {
         palette.src = process.env.PUBLIC_URL+"/img/Palettes/default.png"
         palette.onload = () => {
             for (const key of Object.keys(Node.Objects)) {
-                if(!tempDraw.some(value => key.includes(value))) continue;
+                if(Game.debug && !tempDraw.some(value => key.includes(value))) continue;
                 const localDrawings: Array<Array<any>> = []
 
                 const hasDirections = Node.Objects[key].hasDirs
@@ -219,13 +222,11 @@ export default class Game extends Component {
                                 const y = Node.Objects[key].y;
                                 const posForColor = (y * 7 + x) << 2;
 
-                                // change the whites of the image to the palette color
+                                // change the colors of the image to the palette color
                                 for (let i =0; i < imgData.length; i += 4) {
-                                    if(imgData[i] === 255) {
-                                        imgData[i] = paletteData.data[posForColor]
-                                        imgData[i+1] = paletteData.data[posForColor+1]
-                                        imgData[i+2] = paletteData.data[posForColor+2];
-                                    }
+                                    imgData[i] *= paletteData.data[posForColor]/255
+                                    imgData[i+1] *= paletteData.data[posForColor+1]/255
+                                    imgData[i+2] *= paletteData.data[posForColor+2]/255
                                 }
 
                                 // change image data to canvas for easy drawing
@@ -295,6 +296,8 @@ const tempDraw = [
     "sink",
     "water",
     "lava",
+    "and",
+    "ice"
 ]
 
 export class AnimatedImage extends Drawing {

@@ -24,10 +24,34 @@ export default class Rules {
                     if(curNode.isText_Object) {
                         if(x+1 !< this.grid.width && x+2 !< this.grid.width) {
                             for (const node1 of grid[y][x+1].nodes) {
-                                if(node1.isText_Verb) {
+                                if(node1.isText_Verb && node1.text === "is") {
                                     for (const node2 of grid[y][x+2].nodes) {
                                         if (node2.isText_Quality || node2.isText_Object) {
                                             this.addRule(curNode.text + " " + node1.text + " " + node2.text)
+
+                                            // do extra and's
+                                            let stop = false;
+                                            let extra = 3;
+                                            while(!stop) {
+                                                if(x+extra !< this.grid.width && x+extra+1 !< this.grid.width) {
+                                                    for (const node3 of grid[y][x+extra].nodes) {
+                                                        if(node3.isText_Special && node3.text === "and") {
+                                                            for (const node4 of grid[y][x+extra+1].nodes) {
+                                                                if (node4.isText_Quality || node4.isText_Object) {
+                                                                    this.addRule(curNode.text + " " + node1.text + " " + node4.text)
+                                                                } else {
+                                                                    stop = true;
+                                                                }
+                                                            }
+                                                        } else {
+                                                            stop = true;
+                                                        }
+                                                    }
+                                                } else {
+                                                    stop = true;
+                                                }
+                                                extra+=2;
+                                            }
                                         }
                                     }
                                 }
@@ -39,6 +63,30 @@ export default class Rules {
                                     for (const node2 of grid[y+2][x].nodes) {
                                         if (node2.isText_Quality || node2.isText_Object) {
                                             this.addRule(curNode.text + " " + node1.text + " " + node2.text)
+
+                                            // do extra and's
+                                            let stop = false;
+                                            let extra = 3;
+                                            while(!stop) {
+                                                if(y+extra !< this.grid.height && y+extra+1 !< this.grid.height) {
+                                                    for (const node3 of grid[y+extra][x].nodes) {
+                                                        if(node3.isText_Special && node3.text === "and") {
+                                                            for (const node4 of grid[y+extra+1][x].nodes) {
+                                                                if (node4.isText_Quality || node4.isText_Object) {
+                                                                    this.addRule(curNode.text + " " + node1.text + " " + node4.text)
+                                                                } else {
+                                                                    stop = true;
+                                                                }
+                                                            }
+                                                        } else {
+                                                            stop = true;
+                                                        }
+                                                    }
+                                                } else {
+                                                    stop = true;
+                                                }
+                                                extra+=2;
+                                            }
                                         }
                                     }
                                 }

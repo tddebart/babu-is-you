@@ -89,6 +89,12 @@ export class Node {
         }
         return false;
     }
+    get isText_Special():boolean {
+        if(this.isText) {
+            return Node.Objects["text_" + this.text].type === 6;
+        }
+        return false;
+    }
 
     is(rule: string): boolean {
         return this.rules.indexOf(rule) !== -1;
