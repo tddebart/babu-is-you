@@ -8,6 +8,9 @@ import {Node} from "./Node";
 
 export default class Game extends Component {
     static get hasFullyLoaded(): boolean {
+        if(Game.debug) {
+            return true
+        }
         return Object.keys(Game.drawings).length === Object.keys(Node.Objects).length-1
     }
     static get grid(): Grid {
@@ -24,7 +27,7 @@ export default class Game extends Component {
     private canMove: boolean = true;
     private justUndone: boolean = false;
     private interval!: any;
-    private debug: boolean = true
+    static debug: boolean = true
     static resolution: number = 50;
 
     static hasLoadedObjects: boolean = false;
@@ -37,7 +40,7 @@ export default class Game extends Component {
     }
 
     componentDidMount() {
-        Game._grid = new Grid(Game.canvas, 10, 10, Game.resolution, this.debug);
+        Game._grid = new Grid(Game.canvas, 10, 10, Game.resolution, Game.debug);
         window.addEventListener("resize", Game._grid.updateScreenScalings.bind(Game._grid))
         window.addEventListener('keydown',this.keyDetectDown.bind(this),false);
         window.addEventListener('keyup',this.keyDetectUp.bind(this),false);
@@ -153,6 +156,7 @@ export default class Game extends Component {
         palette.src = process.env.PUBLIC_URL+"/img/Palettes/default.png"
         palette.onload = () => {
             for (const key of Object.keys(Node.Objects)) {
+                if(!tempDraw.some(value => key.includes(value))) continue;
                 const localDrawings: Array<Array<any>> = []
 
                 const hasDirections = Node.Objects[key].hasDirs
@@ -241,6 +245,7 @@ export default class Game extends Component {
                                         document.getElementById("loading")!.style.animation = "loadingDone 1s linear";
                                         document.getElementById("loading")!.style.animationFillMode = "forwards"
                                         Game.grid.rules.updateRules();
+                                        return;
                                     }
                                 }, 100)
                             }
@@ -273,6 +278,24 @@ export default class Game extends Component {
         )
     }
 }
+
+const tempDraw = [
+    "babu",
+    "keke",
+    "wall",
+    "is",
+    "you",
+    "rock",
+    "flag",
+    "win",
+    "push",
+    "stop",
+    "melt",
+    "hot",
+    "sink",
+    "water",
+    "lava",
+]
 
 export class AnimatedImage extends Drawing {
     public currentDirection: number = 0;

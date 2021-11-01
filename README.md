@@ -5,8 +5,7 @@ a knockoff recreation of the game [baba is you](https://store.steampowered.com/a
 https://tddebart.github.io/babu-is-you
 
 # TODO
-
-- move drawings to game instead of saving it per grid also only load palette once instead of multiple times
+- load the world map properly
 - figure out how things like skull rock and wall have a secondary color
 - save the previous direction in the undo states
 
@@ -16,13 +15,6 @@ https://tddebart.github.io/babu-is-you
 - when creating new baba from keke the new baba will not have smooth transitions when moving
 - when you change wall into flag it will undo that action on every undo see 1level.l and change wall into flag
 - see 5level.l . when you change into the wall and kill walls or stack walls the game will lag hard
-
-## First 7 levels
-- [x] wall tiles
-- [x] smooth transitions when moving
-- [x] import grass and flag
-- [ ] make is sink and water
-- [ ] make is melt and is hot and lava
 
 
 

@@ -42,6 +42,9 @@ export default class Grid extends Drawing {
     updateGrid(width: number, height: number) {
         this.debug = false;
         this.grid = [];
+        this.undoStep = 0;
+        this.undoMoves = [];
+        this.undoActions = []
         this.width = width;
         this.height = height;
         this.updateScreenScalings();
@@ -90,9 +93,15 @@ export default class Grid extends Drawing {
                             this.grid[y][x].nodes.push(new Node(x,y,this,"you"));
                         }
                         //
-                        // if((x===7 && y===4)) {
-                        //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"keke"))
-                        // }
+                        if((x===7 && y===4)) {
+                            this.grid[y][x].nodes.push(new Node(x,y,this,"keke"))
+                        }
+                        if((x===8 && y===4)) {
+                            this.grid[y][x].nodes.push(new Node(x,y,this,"is"))
+                        }
+                        if((x===9 && y===4)) {
+                            this.grid[y][x].nodes.push(new Node(x,y,this,"sink"))
+                        }
                         // if((x===7 && y===6)) {
                         //     this.grid[y][x].nodes.push(new Node(x,y,this.canvas,"me"))
                         // }
@@ -154,6 +163,23 @@ export default class Grid extends Drawing {
                                 textScreen!.style.animation = "";
                                 textScreen!.style.display = "none";
                             })
+                        }
+                    }
+                    if(node.is("sink")) {
+                        if(this.grid[y][x].nodes.some(value => !value.is("sink"))) {
+                            const destroyNode = this.grid[y][x].nodes.find(value => !value.is("sink"))
+                            if(destroyNode){
+                                this.undoActions.push({node: destroyNode, changeTo: destroyNode.objectName, changeOn: this.undoStep+1})
+                                destroyNode.objectName = "";
+                                this.undoActions.push({node: node, changeTo: node.objectName, changeOn: this.undoStep+1})
+                                node.objectName = "";
+                            }
+                        }
+                    }
+                    if(node.is("hot")) {
+                        for (const destroyNode of this.grid[y][x].nodes.filter(value => value.is("melt"))) {
+                            this.undoActions.push({node: destroyNode, changeTo: destroyNode.objectName, changeOn: this.undoStep+1})
+                            destroyNode.objectName = "";
                         }
                     }
                 }
@@ -240,13 +266,13 @@ export default class Grid extends Drawing {
         this.ctx.imageSmoothingEnabled = false
 
         this.ctx.drawImage(this.gridImage, this.offset.x, this.offset.y)
-        for (let zI = 0; zI < 25; zI++) {
+        // for (let zI = 0; zI < 25; zI++) {
             for (let y = 0; y < this.height; y++) {
                 for (let x = 0; x < this.width; x++) {
                     for (let j = 0; j < this.grid[y][x].nodes.length; j++){
                         const node = this.grid[y][x].nodes[j];
                         if(node.objectName !== "") {
-                            if(Node.Objects[node.objectName].zIndex !== zI) continue
+                            // if(Node.Objects[node.objectName].zIndex !== zI) continue
 
 
                             const drawing = node.aniImg;
@@ -261,7 +287,7 @@ export default class Grid extends Drawing {
                             }
                         }
                         if(node.isText) {
-                            if(Node.Objects["text_"+node.text].zIndex !== zI) continue
+                            // if(Node.Objects["text_"+node.text].zIndex !== zI) continue
 
                             const drawing = node.aniImg;
                             if(drawing !== null) {
@@ -275,7 +301,7 @@ export default class Grid extends Drawing {
                         }
                     }
                 }
-            }
+            // }
         }
     }
 
