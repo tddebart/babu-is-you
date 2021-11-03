@@ -25,24 +25,19 @@ export default class Rules {
                         if(x+1 !< this.grid.width && x+2 !< this.grid.width) {
                             for (const node1 of grid[y][x+1].nodes) {
                                 if(node1.isText_Verb && node1.text === "is") {
-                                    for (const node2 of grid[y][x+2].nodes) {
-                                        if (node2.isText_Quality || node2.isText_Object) {
-                                            this.addRule(curNode.text + " " + node1.text + " " + node2.text)
 
-                                            // do extra and's
-                                            let stop = false;
-                                            let extra = 3;
-                                            while(!stop) {
-                                                if(x+extra !< this.grid.width && x+extra+1 !< this.grid.width) {
-                                                    for (const node3 of grid[y][x+extra].nodes) {
-                                                        if(node3.isText_Special && node3.text === "and") {
-                                                            for (const node4 of grid[y][x+extra+1].nodes) {
-                                                                if (node4.isText_Quality || node4.isText_Object) {
-                                                                    this.addRule(curNode.text + " " + node1.text + " " + node4.text)
-                                                                } else {
-                                                                    stop = true;
-                                                                }
-                                                            }
+                                    let extraObjects = []
+
+                                    // do extra and's
+                                    let stop = false;
+                                    let extra = 2;
+                                    while(!stop) {
+                                        if(x-extra > 0 && x-extra+1 > 0) {
+                                            for (const node3 of grid[y][x-extra].nodes) {
+                                                if(node3.isText_Object) {
+                                                    for (const node4 of grid[y][x-extra+1].nodes) {
+                                                        if (node4.isText_Special && node4.text === "and") {
+                                                            extraObjects.push(node3.text)
                                                         } else {
                                                             stop = true;
                                                         }
@@ -50,7 +45,48 @@ export default class Rules {
                                                 } else {
                                                     stop = true;
                                                 }
-                                                extra+=2;
+                                            }
+                                        } else {
+                                            stop = true;
+                                        }
+                                        extra+=2;
+                                    }
+
+                                    // Remove duplicates
+                                    extraObjects = Array.from(new Set(extraObjects))
+
+                                    for (const node2 of grid[y][x+2].nodes) {
+                                        if (node2.isText_Quality || node2.isText_Object) {
+                                            for (const extraObject of extraObjects) {
+                                                this.addRule(extraObject + " " + node1.text + " " + node2.text)
+                                            }
+                                            this.addRule(curNode.text + " " + node1.text + " " + node2.text)
+
+                                            // do extra and's
+                                            let stop2 = false;
+                                            let extra2 = 3;
+                                            while(!stop2) {
+                                                if(x+extra2 !< this.grid.width && x+extra2+1 !< this.grid.width) {
+                                                    for (const node3 of grid[y][x+extra2].nodes) {
+                                                        if(node3.isText_Special && node3.text === "and") {
+                                                            for (const node4 of grid[y][x+extra2+1].nodes) {
+                                                                if (node4.isText_Quality || node4.isText_Object) {
+                                                                    for (const extraObject of extraObjects) {
+                                                                        this.addRule(extraObject + " " + node1.text + " " + node4.text)
+                                                                    }
+                                                                    this.addRule(curNode.text + " " + node1.text + " " + node4.text)
+                                                                } else {
+                                                                    stop2 = true;
+                                                                }
+                                                            }
+                                                        } else {
+                                                            stop2 = true;
+                                                        }
+                                                    }
+                                                } else {
+                                                    stop2 = true;
+                                                }
+                                                extra2+=2;
                                             }
                                         }
                                     }
@@ -59,25 +95,20 @@ export default class Rules {
                         }
                         if(y+1 !< this.grid.height && y+2 !< this.grid.height) {
                             for (const node1 of grid[y+1][x].nodes) {
-                                if(node1.isText_Verb) {
-                                    for (const node2 of grid[y+2][x].nodes) {
-                                        if (node2.isText_Quality || node2.isText_Object) {
-                                            this.addRule(curNode.text + " " + node1.text + " " + node2.text)
+                                if(node1.isText_Verb && node1.text === "is") {
 
-                                            // do extra and's
-                                            let stop = false;
-                                            let extra = 3;
-                                            while(!stop) {
-                                                if(y+extra !< this.grid.height && y+extra+1 !< this.grid.height) {
-                                                    for (const node3 of grid[y+extra][x].nodes) {
-                                                        if(node3.isText_Special && node3.text === "and") {
-                                                            for (const node4 of grid[y+extra+1][x].nodes) {
-                                                                if (node4.isText_Quality || node4.isText_Object) {
-                                                                    this.addRule(curNode.text + " " + node1.text + " " + node4.text)
-                                                                } else {
-                                                                    stop = true;
-                                                                }
-                                                            }
+                                    let extraObjects = []
+
+                                    // do extra and's
+                                    let stop = false;
+                                    let extra = 2;
+                                    while(!stop) {
+                                        if(y-extra > 0 && y-extra+1 > 0) {
+                                            for (const node3 of grid[y-extra][x].nodes) {
+                                                if(node3.isText_Object) {
+                                                    for (const node4 of grid[y-extra+1][x].nodes) {
+                                                        if (node4.isText_Special && node4.text === "and") {
+                                                            extraObjects.push(node3.text)
                                                         } else {
                                                             stop = true;
                                                         }
@@ -85,7 +116,49 @@ export default class Rules {
                                                 } else {
                                                     stop = true;
                                                 }
-                                                extra+=2;
+                                            }
+                                        } else {
+                                            stop = true;
+                                        }
+                                        extra+=2;
+                                    }
+
+                                    // Remove duplicates
+                                    extraObjects = Array.from(new Set(extraObjects))
+
+
+                                    for (const node2 of grid[y+2][x].nodes) {
+                                        if (node2.isText_Quality || node2.isText_Object) {
+                                            for (const extraObject of extraObjects) {
+                                                this.addRule(extraObject + " " + node1.text + " " + node2.text)
+                                            }
+                                            this.addRule(curNode.text + " " + node1.text + " " + node2.text)
+
+                                            // do extra and's
+                                            let stop2 = false;
+                                            let extra2 = 3;
+                                            while(!stop2) {
+                                                if(y+extra2 !< this.grid.height && y+extra2+1 !< this.grid.height) {
+                                                    for (const node3 of grid[y+extra2][x].nodes) {
+                                                        if(node3.isText_Special && node3.text === "and") {
+                                                            for (const node4 of grid[y+extra2+1][x].nodes) {
+                                                                if (node4.isText_Quality || node4.isText_Object) {
+                                                                    for (const extraObject of extraObjects) {
+                                                                        this.addRule(extraObject + " " + node1.text + " " + node4.text)
+                                                                    }
+                                                                    this.addRule(curNode.text + " " + node1.text + " " + node4.text)
+                                                                } else {
+                                                                    stop2 = true;
+                                                                }
+                                                            }
+                                                        } else {
+                                                            stop2 = true;
+                                                        }
+                                                    }
+                                                } else {
+                                                    stop2 = true;
+                                                }
+                                                extra2+=2;
                                             }
                                         }
                                     }

@@ -27,7 +27,7 @@ export default class Game extends Component {
     private canMove: boolean = true;
     private justUndone: boolean = false;
     private interval!: any;
-    static debug: boolean = false
+    static debug: boolean = true
     static resolution: number = 50;
 
     static hasLoadedObjects: boolean = false;

@@ -6,11 +6,9 @@ https://tddebart.github.io/babu-is-you
 
 # TODO
 - load the world map properly
-- figure out how things like skull rock and wall have a secondary color
 - save the previous direction in the undo states
-- if you push two text on top of each other both of them should move instead of just one
+- if you push two text that are on top of each other both of them should move instead of just one
 - add particles for when someone dies and moves
-- add and for in front of object
 
 ## Bugs
 
