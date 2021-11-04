@@ -26,11 +26,16 @@ export default class Game extends Component {
     static drawings: {[key: string]: any} = {}
     private canMove: boolean = true;
     private justUndone: boolean = false;
-    private interval!: any;
     static debug: boolean = true
     static resolution: number = 50;
 
     static hasLoadedObjects: boolean = false;
+
+    private interval!: any;
+    private intervalW!: any;
+    private intervalD!: any;
+    private intervalS!: any;
+    private intervalA!: any;
 
     constructor(props: any) {
         super(props);
@@ -127,30 +132,45 @@ export default class Game extends Component {
 
     keyDetectDown(e: KeyboardEvent) {
         if(e.repeat || !Game.hasFullyLoaded) return;
-        if(this.interval !== undefined) return;
-        if(e.key === "w") {
+        if(e.key === "w"  || e.key === "ArrowUp") {
             this.movePlayers(0,-1)
-            this.interval = setInterval(() => this.movePlayers(0,-1), 150)
+            this.intervalW = setInterval(() => this.movePlayers(0,-1), 150)
         }
-        else if(e.key === "a") {
+        if(e.key === "a"  || e.key === "ArrowLeft") {
             this.movePlayers(-1,0)
-            this.interval = setInterval(() => this.movePlayers(-1,0), 150)
-        } else if(e.key === "s") {
-            this.movePlayers(0,1)
-            this.interval = setInterval(() => this.movePlayers(0,1), 150)
-        } else if(e.key === "d") {
-            this.movePlayers(1,0)
-            this.interval = setInterval(() => this.movePlayers(1,0), 150)
+            this.intervalA = setInterval(() => this.movePlayers(-1,0), 150)
         }
-        else if(e.key === "z") {
+        if(e.key === "s"  || e.key === "ArrowDown") {
+            this.movePlayers(0,1)
+            this.intervalS = setInterval(() => this.movePlayers(0,1), 150)
+        }
+        if(e.key === "d"  || e.key === "ArrowRight") {
+            this.movePlayers(1,0)
+            this.intervalD = setInterval(() => this.movePlayers(1,0), 150)
+        }
+        if(e.key === "z") {
             this.undoMoves();
             this.interval = setInterval(() => this.undoMoves(), 200)
         }
     }
+
     keyDetectUp(e: KeyboardEvent) {
         if(e.repeat) return;
-        clearInterval(this.interval)
-        this.interval = undefined
+        if(e.key === "w" || e.key === "ArrowUp") {
+            clearInterval(this.intervalW)
+        }
+        if(e.key === "a" || e.key === "ArrowLeft") {
+            clearInterval(this.intervalA)
+        }
+        if(e.key === "s" || e.key === "ArrowDown") {
+            clearInterval(this.intervalS)
+        }
+        if(e.key === "d" || e.key === "ArrowRight") {
+            clearInterval(this.intervalD)
+        }
+        if(e.key === "z") {
+            clearInterval(this.interval)
+        }
     }
 
     static loadAllImages() {
