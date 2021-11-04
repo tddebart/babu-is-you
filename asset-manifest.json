@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/babu-is-you/static/css/main.305625df.chunk.css",
-    "main.js": "/babu-is-you/static/js/main.99465438.chunk.js",
-    "main.js.map": "/babu-is-you/static/js/main.99465438.chunk.js.map",
+    "main.js": "/babu-is-you/static/js/main.56769ddd.chunk.js",
+    "main.js.map": "/babu-is-you/static/js/main.56769ddd.chunk.js.map",
     "runtime-main.js": "/babu-is-you/static/js/runtime-main.46ed01c9.js",
     "runtime-main.js.map": "/babu-is-you/static/js/runtime-main.46ed01c9.js.map",
     "static/js/2.785aadec.chunk.js": "/babu-is-you/static/js/2.785aadec.chunk.js",
@@ -17,6 +17,6 @@
     "static/js/runtime-main.46ed01c9.js",
     "static/js/2.785aadec.chunk.js",
     "static/css/main.305625df.chunk.css",
-    "static/js/main.99465438.chunk.js"
+    "static/js/main.56769ddd.chunk.js"
   ]
 }
