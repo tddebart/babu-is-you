@@ -25,6 +25,7 @@ export let DefaultsById: {[key: number]: Item} = {}
 export let DefaultsByName: {[key: string]: Item} = {}
 
 export function GenerateDefault() {
+    console.log("generating defealts")
     fetch(process.env.PUBLIC_URL+"/values.lua").then(
         function(res) {
             return res.text();
@@ -34,6 +35,7 @@ export function GenerateDefault() {
             if(line.indexOf("tileslist =") === 0) {
                 const startIndex = lines.findIndex(value => value === line);
                 ReadAllObjectLines(startIndex, lines)
+                Game.loadGrid()
                 Game.loadAllImages()
             }
         }
@@ -209,11 +211,10 @@ function ReadLayer(hexArr: Array<string>, position:number) {
     position += 4;
     const height = binArrayToNumb(hexArr.slice(position, position + 4))
     position += 4;
-    console.log("Width: " + width + " Height: " + height)
+    // console.log("Width: " + width + " Height: " + height)
 
     let size = width * height;
     position += 32;
-    console.log(`Position should be 70 it is: ` + position)
 
     // let data_blocks = binArrayToNumb(hexArr.slice(position, position + 1))
     position += 1;

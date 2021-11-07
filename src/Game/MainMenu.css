@@ -1,0 +1,56 @@
+.mainMenu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 105;
+}
+.buttonHolder {
+    display: flex;
+}
+
+.mainImage {
+    max-width: 800px;
+}
+
+img{
+    background-size: cover;
+    height:auto;
+    max-width: 700px;
+}
+
+.creditsText {
+    width:30%;
+    left:50%;
+    position: relative;
+    transform: translateX(-50%)
+}
+
+@media only screen and (min-width: 1000px) {
+    img {
+        width: 40%;
+    }
+    .mainImage {
+        width: 50%;
+    }
+}
+
+@media only screen and (max-height: 530px) {
+    img {
+        height: 20%;
+    }
+    .mainImage {
+        height:35%;
+    }
+}
+
+@media only screen and (max-width: 1000px) {
+    img {
+        width: 80%;
+    }
+    .mainImage {
+        width: 90%;
+    }
+}

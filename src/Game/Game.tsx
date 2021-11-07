@@ -5,10 +5,11 @@ import Grid from "./Grid";
 import gitLogo from "../GitHub-Mark-64px.png";
 import {GenerateDefault, ReadMapFromBrowseFile} from "./Reader";
 import {Node} from "./Node";
+import MainMenu from "./MainMenu";
 
 export default class Game extends Component {
     static get hasFullyLoaded(): boolean {
-        if(Game.debug) {
+        if(Game.debug || Game.fastLoading) {
             return true
         }
         return Object.keys(Game.drawings).length === Object.keys(Node.Objects).length-1
@@ -21,13 +22,16 @@ export default class Game extends Component {
         this._grid = value;
         window.addEventListener("resize", value.updateScreenScalings.bind(Game.grid))
     }
+
+    static mainMenu: MainMenu;
     static canvas: Canvas;
     private static _grid:Grid;
     static drawings: {[key: string]: any} = {}
     private canMove: boolean = true;
     private justUndone: boolean = false;
-    static debug: boolean = true
+    static debug: boolean = false;
     static resolution: number = 50;
+    static fastLoading: boolean = false;
 
     static hasLoadedObjects: boolean = false;
 
@@ -45,12 +49,28 @@ export default class Game extends Component {
     }
 
     componentDidMount() {
-        Game._grid = new Grid(Game.canvas, 10, 10, Game.resolution, Game.debug);
-        window.addEventListener("resize", Game._grid.updateScreenScalings.bind(Game._grid))
         window.addEventListener('keydown',this.keyDetectDown.bind(this),false);
         window.addEventListener('keyup',this.keyDetectUp.bind(this),false);
 
-        GenerateDefault();
+        if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+            // do thing only in development
+        } else {
+            // If we are in production build disable debug
+            Game.debug = false;
+        }
+
+        if(localStorage.getItem("grid") === null) {
+            localStorage.setItem("grid", "true")
+        }
+
+        if(Game.debug) {
+            GenerateDefault()
+        }
+    }
+
+    static loadGrid() {
+        Game._grid = new Grid(Game.canvas, 10, 10, Game.resolution, Game.debug);
+        window.addEventListener("resize", Game._grid.updateScreenScalings.bind(Game._grid))
     }
 
     movePlayers(xP:number, yP:number) {
@@ -130,6 +150,8 @@ export default class Game extends Component {
         this.canMove = true;
     }
 
+    //TODO: detect swipes for mobile movement
+
     keyDetectDown(e: KeyboardEvent) {
         if(e.repeat || !Game.hasFullyLoaded) return;
         if(e.key === "w"  || e.key === "ArrowUp") {
@@ -179,7 +201,7 @@ export default class Game extends Component {
         palette.src = process.env.PUBLIC_URL+"/img/Palettes/default.png"
         palette.onload = () => {
             for (const key of Object.keys(Node.Objects)) {
-                if(Game.debug && !tempDraw.some(value => key.includes(value))) continue;
+                if((Game.debug || Game.fastLoading) && !tempDraw.some(value => key.includes(value))) continue;
                 const localDrawings: Array<Array<any>> = []
 
                 const hasDirections = Node.Objects[key].hasDirs
@@ -278,8 +300,20 @@ export default class Game extends Component {
     }
 
     render() {
+
         return(
             <>
+                {!Game.debug &&
+                    <MainMenu ref={el => {
+                        if(el) {
+                            return Game.mainMenu = el
+                        }
+                    }}/>
+
+                }
+
+                <div id={"background"} className={"background"}/>
+
                 <div id={"loading"} className={"loading"}>LOADING 0%</div>
 
                 <a href="https://github.com/tddebart/babu-is-you" target="_blank" rel="noreferrer">

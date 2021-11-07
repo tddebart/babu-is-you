@@ -1,6 +1,7 @@
 import Canvas, {Drawing} from "./Canvas";
 import Tile, {Node} from "./Node";
 import Rules from "./rules";
+import {detectMobile} from "../mobileCheck";
 
 export default class Grid extends Drawing {
     public width: number
@@ -32,9 +33,9 @@ export default class Grid extends Drawing {
         this.height = height;
         this.resolution = resolution;
         this.debug = debug;
-        this.updateScreenScalings()
-        this.gridImage = this.drawGrid()
-        this.initializeGrid(width, height)
+
+        this.updateGrid(width, height)
+
         this.rules.updateRules()
         this.canvas.canvas.addEventListener('click', this.calculateText.bind(this));
     }
@@ -52,12 +53,33 @@ export default class Grid extends Drawing {
         this.initializeGrid(width, height)
     }
 
+
     updateScreenScalings() {
-        let resY = (window.innerHeight-100) / this.height;
-        let resX = (window.innerWidth-100) / this.width
+        let resX;
+        let resY;
+        if(detectMobile()) {
+            resX = (window.innerWidth-10) / this.width
+            resY = (window.innerHeight-10) / this.height;
+        } else {
+            resX = (window.innerWidth-100) / this.width
+            resY = (window.innerHeight-100) / this.height;
+        }
         this.resolution = clamp(Math.round(Math.min(resX, resY)), 5, 150)
         this.offset = {x:Math.floor(window.innerWidth/2-(this.width/2*this.resolution)), y:Math.floor(window.innerHeight/2-(this.height/2*this.resolution))}
         this.gridImage = this.drawGrid()
+        let background = document.getElementById("background");
+        if (background) {
+            if(localStorage.getItem("grid") === "false") {
+                background.style.display = "block";
+
+                background.style.left = this.offset.x.toString() + "px";
+                background.style.top = this.offset.y.toString() + "px";
+                background.style.width = this.width * this.resolution + "px";
+                background.style.height = this.height * this.resolution + "px";
+            } else {
+                background.style.display = "none";
+            }
+        }
     }
 
     initializeGrid(width:number, height:number) {
@@ -265,14 +287,22 @@ export default class Grid extends Drawing {
         this.ctx.clearRect(0,0,this.canvas.canvas.width,this.canvas.canvas.height)
         this.ctx.imageSmoothingEnabled = false
 
-        this.ctx.drawImage(this.gridImage, this.offset.x, this.offset.y)
-        // for (let zI = 0; zI < 25; zI++) {
+        if(localStorage.getItem("grid") === "true") {
+            this.ctx.drawImage(this.gridImage, this.offset.x, this.offset.y)
+        }
+        // else {
+        //     this.ctx.fillStyle = '#080808';
+        //     this.ctx.rect(this.offset.x, this.offset.y, this.gridImage.width, this.gridImage.height)
+        //     this.ctx.fill();
+        // }
+
+        for (let zI = 0; zI < 25; zI++) {
             for (let y = 0; y < this.height; y++) {
                 for (let x = 0; x < this.width; x++) {
                     for (let j = 0; j < this.grid[y][x].nodes.length; j++){
                         const node = this.grid[y][x].nodes[j];
                         if(node.objectName !== "") {
-                            // if(Node.Objects[node.objectName].zIndex !== zI) continue
+                            if(Node.Objects[node.objectName].zIndex !== zI) continue
 
 
                             const drawing = node.aniImg;
@@ -287,7 +317,7 @@ export default class Grid extends Drawing {
                             }
                         }
                         if(node.isText) {
-                            // if(Node.Objects["text_"+node.text].zIndex !== zI) continue
+                            if(Node.Objects["text_"+node.text].zIndex !== zI) continue
 
                             const drawing = node.aniImg;
                             if(drawing !== null) {
@@ -301,7 +331,7 @@ export default class Grid extends Drawing {
                         }
                     }
                 }
-            // }
+            }
         }
     }
 
