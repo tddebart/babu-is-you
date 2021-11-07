@@ -6,6 +6,7 @@ import gitLogo from "../GitHub-Mark-64px.png";
 import {GenerateDefault, ReadMapFromBrowseFile} from "./Reader";
 import {Node} from "./Node";
 import MainMenu from "./MainMenu";
+import LevelSelect from "./LevelSelect";
 
 export default class Game extends Component {
     static get hasFullyLoaded(): boolean {
@@ -23,17 +24,25 @@ export default class Game extends Component {
         window.addEventListener("resize", value.updateScreenScalings.bind(Game.grid))
     }
 
+    static instance: Game;
     static mainMenu: MainMenu;
     static canvas: Canvas;
     private static _grid:Grid;
+
     static drawings: {[key: string]: any} = {}
+
     private canMove: boolean = true;
     private justUndone: boolean = false;
+
     static debug: boolean = false;
     static resolution: number = 50;
     static fastLoading: boolean = false;
 
     static hasLoadedObjects: boolean = false;
+
+    static showLevelSelect: boolean;
+    static levelSelector: LevelSelect;
+
 
     private interval!: any;
     private intervalW!: any;
@@ -49,6 +58,8 @@ export default class Game extends Component {
     }
 
     componentDidMount() {
+        Game.instance = this;
+
         window.addEventListener('keydown',this.keyDetectDown.bind(this),false);
         window.addEventListener('keyup',this.keyDetectUp.bind(this),false);
 
@@ -57,6 +68,7 @@ export default class Game extends Component {
         } else {
             // If we are in production build disable debug
             Game.debug = false;
+            Game.fastLoading = false;
         }
 
         if(localStorage.getItem("grid") === null) {
@@ -288,6 +300,8 @@ export default class Game extends Component {
                                         document.getElementById("loading")!.style.animation = "loadingDone 1s linear";
                                         document.getElementById("loading")!.style.animationFillMode = "forwards"
                                         Game.grid.rules.updateRules();
+                                        Game.showLevelSelect = true;
+                                        Game.instance.forceUpdate();
                                         return;
                                     }
                                 }, 100)
@@ -312,6 +326,14 @@ export default class Game extends Component {
 
                 }
 
+                {Game.hasFullyLoaded &&
+                    <LevelSelect ref={el => {
+                        if(el) {
+                            return Game.levelSelector = el
+                        }
+                    }}/>
+                }
+
                 <div id={"background"} className={"background"}/>
 
                 <div id={"loading"} className={"loading"}>LOADING 0%</div>
@@ -319,7 +341,11 @@ export default class Game extends Component {
                 <a href="https://github.com/tddebart/babu-is-you" target="_blank" rel="noreferrer">
                     <img className={"github"} src={gitLogo} alt={"github"} />
                 </a>
-                <button style={{position: "absolute", top: "10px"}} onClick={() => console.log(Game._grid)}>Grid</button>
+                <button style={{position: "absolute", top: "10px"}} onClick={() => {
+                    document.getElementById("worldMap")!.style.display = "block";
+                    document.getElementById("gridLevels")!.style.display = "grid";
+
+                }}>Return to level select</button>
                 <input type={"file"} style={{position: "absolute", left: 250, top: "10px"}} onChange={(e) => ReadMapFromBrowseFile(e)}/>
                 <label style={{position: "absolute", left: 250, top: 25, fontSize: 20}}>{"Load a world (.l file)"}</label>
 

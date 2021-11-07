@@ -13,7 +13,7 @@ export default class MainMenu extends Component {
             return (
                 <div className={"mainMenu"}>
                     <img className={"mainImage"} id={"mainImage"} src={process.env.PUBLIC_URL+"/mainMenu/babu-is-you.gif"} alt={"babu is you"}/>
-                    <div style={{fontFamily:"arial"}}>A RECREATION OF THE GAME BABA iS YOU</div>
+                    <div style={{fontFamily:"arial"}}>A RECREATION OF THE GAME BABA IS YOU</div>
                     <div style={{height:"5%"}}/>
                     <img id={"start"} src={process.env.PUBLIC_URL+"/mainMenu/startGame.png"} alt={"babu is you"} onMouseEnter={
                         () => {
@@ -75,64 +75,66 @@ export default class MainMenu extends Component {
                 <div className={"mainMenu"}>
                     <h1>Settings</h1>
 
-                    {/*grid button on */}
-                    {localStorage.getItem("grid") === "true" &&
-                    <img style={{display: "inline-block"}} id={"grid"} src={process.env.PUBLIC_URL+"/mainMenu/gridOn.png"} alt={"grid"} onMouseEnter={
-                        () => {
-                            // @ts-ignore
-                            document.getElementById("grid").src = process.env.PUBLIC_URL+"/mainMenu/gridOnSelected.png"
+                    <div className={"settingsHolder"}>
+                        {/*grid button on */}
+                        {localStorage.getItem("grid") === "true" &&
+                        <img style={{width:"auto"}} id={"grid"} src={process.env.PUBLIC_URL+"/mainMenu/gridOn.png"} alt={"grid"} onMouseEnter={
+                            () => {
+                                // @ts-ignore
+                                document.getElementById("grid").src = process.env.PUBLIC_URL+"/mainMenu/gridOnSelected.png"
+                            }
+                        } onMouseOut={
+                            () => {
+                                // @ts-ignore
+                                document.getElementById("grid").src = process.env.PUBLIC_URL+"/mainMenu/gridOn.png"
+                            }
+                        } onClick={
+                            () => {
+                                localStorage.setItem("grid", localStorage.getItem("grid") === "true" ? "false" : "true");
+                                this.forceUpdate();
+                            }
+                        }/>
                         }
-                    } onMouseOut={
-                        () => {
-                            // @ts-ignore
-                            document.getElementById("grid").src = process.env.PUBLIC_URL+"/mainMenu/gridOn.png"
-                        }
-                    } onClick={
-                        () => {
-                            localStorage.setItem("grid", localStorage.getItem("grid") === "true" ? "false" : "true");
-                            this.forceUpdate();
-                        }
-                    }/>
-                    }
 
-                    {/*grid button off */}
-                    {localStorage.getItem("grid") === "false" &&
-                    <img style={{display: "inline-block"}} id={"grid"} src={process.env.PUBLIC_URL+"/mainMenu/grid.png"} alt={"grid"} onMouseEnter={
-                        () => {
-                            // @ts-ignore
-                            document.getElementById("grid").src = process.env.PUBLIC_URL+"/mainMenu/gridSelected.png"
+                        {/*grid button off */}
+                        {localStorage.getItem("grid") === "false" &&
+                        <img style={{width:"auto"}} id={"grid"} src={process.env.PUBLIC_URL+"/mainMenu/grid.png"} alt={"grid"} onMouseEnter={
+                            () => {
+                                // @ts-ignore
+                                document.getElementById("grid").src = process.env.PUBLIC_URL+"/mainMenu/gridSelected.png"
+                            }
+                        } onMouseOut={
+                            () => {
+                                // @ts-ignore
+                                document.getElementById("grid").src = process.env.PUBLIC_URL+"/mainMenu/grid.png"
+                            }
+                        } onClick={
+                            () => {
+                                localStorage.setItem("grid", localStorage.getItem("grid") === "true" ? "false" : "true");
+                                this.forceUpdate();
+                            }
+                        }/>
                         }
-                    } onMouseOut={
-                        () => {
-                            // @ts-ignore
-                            document.getElementById("grid").src = process.env.PUBLIC_URL+"/mainMenu/grid.png"
-                        }
-                    } onClick={
-                        () => {
-                            localStorage.setItem("grid", localStorage.getItem("grid") === "true" ? "false" : "true");
-                            this.forceUpdate();
-                        }
-                    }/>
-                    }
 
 
-                    <img id={"return"} src={process.env.PUBLIC_URL+"/mainMenu/return.png"} alt={"return"} onMouseEnter={
-                        () => {
-                            // @ts-ignore
-                            document.getElementById("return").src = process.env.PUBLIC_URL+"/mainMenu/returnSelected.png"
-                        }
-                    } onMouseOut={
-                        () => {
-                            // @ts-ignore
-                            document.getElementById("return").src = process.env.PUBLIC_URL+"/mainMenu/return.png"
-                        }
-                    } onClick={
-                        () => {
-                            this.isInSettings = false;
-                            this.isInMain = true;
-                            this.forceUpdate()
-                        }
-                    }/>
+                        <img style={{width:"auto", marginTop: 10}} id={"return"} src={process.env.PUBLIC_URL+"/mainMenu/return.png"} alt={"return"} onMouseEnter={
+                            () => {
+                                // @ts-ignore
+                                document.getElementById("return").src = process.env.PUBLIC_URL+"/mainMenu/returnSelected.png"
+                            }
+                        } onMouseOut={
+                            () => {
+                                // @ts-ignore
+                                document.getElementById("return").src = process.env.PUBLIC_URL+"/mainMenu/return.png"
+                            }
+                        } onClick={
+                            () => {
+                                this.isInSettings = false;
+                                this.isInMain = true;
+                                this.forceUpdate()
+                            }
+                        }/>
+                    </div>
                 </div>
             )
         } else if (this.isInCredits) {

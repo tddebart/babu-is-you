@@ -159,9 +159,13 @@ function SetupObjects() {
 export function ReadMapFromLocalFile(path:string) {
     fetch(path).then(
         function(res) {
-            return res.text();
+            return res.blob()
         }).then(function(data) {
-        ReadMap(data)
+        const reader = new FileReader();
+        reader.onload = function() {
+            return ReadMap(this.result)
+        }
+        reader.readAsBinaryString(data);
     })
 }
 

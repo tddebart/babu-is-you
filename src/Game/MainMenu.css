@@ -7,8 +7,12 @@
     background-color: #000;
     z-index: 105;
 }
-.buttonHolder {
-    display: flex;
+.settingsHolder {
+    display: grid;
+    left:50%;
+    transform: translateX(-50%);
+    width: auto;
+    position: absolute;
 }
 
 .mainImage {
